@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Cloth + Marble probe spike</title>
+  <style>
+    :root {
+      --flock: #0d0d0f;
+      --anodized: #1c1d20;
+      --anodized-edge: #2e3035;
+      --engrave: #e8e4da;
+      --dim: #8f8b82;
+      --mag-orange: #e8772e;
+      --af-green: #8dd27e;
+      color-scheme: dark;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; background: var(--flock); color: var(--engrave); overflow: hidden; overscroll-behavior: none; }
+    body { font: 12px/1.35 ui-monospace, 'IBM Plex Mono', Menlo, Consolas, monospace; -webkit-user-select: none; user-select: none; }
+    canvas { display: block; width: 100vw; height: 100vh; height: 100dvh; touch-action: none; }
+    #vignette { position: fixed; inset: 0; pointer-events: none; background: radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,0.55) 100%); }
+    .crop { position: fixed; width: 18px; height: 18px; border: 0 solid rgba(232,228,218,0.5); pointer-events: none; }
+    .crop.tl { top: 12px; left: 12px; border-top-width: 1px; border-left-width: 1px; }
+    .crop.tr { top: 12px; right: 12px; border-top-width: 1px; border-right-width: 1px; }
+    .crop.bl { bottom: 12px; left: 12px; border-bottom-width: 1px; border-left-width: 1px; }
+    .crop.br { bottom: 12px; right: 12px; border-bottom-width: 1px; border-right-width: 1px; }
+    #hud { position: fixed; top: 16px; left: 16px; max-width: min(420px, calc(100vw - 32px)); padding: 8px 10px; background: rgba(28,29,32,0.78); border-top: 1px solid var(--anodized-edge); border-radius: 3px; pointer-events: none; white-space: pre; font-size: 11px; color: var(--engrave); }
+    #hud b { color: var(--mag-orange); font-weight: 600; letter-spacing: 0.12em; }
+    #hud .dim { color: var(--dim); }
+    #hud.hidden { display: none; }
+    #bar { position: fixed; left: 50%; bottom: calc(14px + env(safe-area-inset-bottom)); transform: translateX(-50%); display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; max-width: calc(100vw - 24px); }
+    #bar button { font: inherit; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--engrave); background: var(--anodized); border: 1px solid var(--anodized-edge); border-radius: 3px; padding: 8px 10px; min-height: 36px; cursor: pointer; }
+    #bar button.on { color: var(--mag-orange); border-color: var(--mag-orange); }
+    #bar button:active { transform: translateY(1px); }
+    #readout { position: fixed; right: 16px; top: 16px; text-align: right; font-size: 11px; color: var(--dim); pointer-events: none; }
+    #readout .mag { color: var(--mag-orange); }
+    #loading { position: fixed; inset: 0; display: grid; place-items: center; background: var(--flock); font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--dim); transition: opacity 0.4s; }
+    #loading.gone { opacity: 0; pointer-events: none; }
+    #hint { position: fixed; left: 50%; top: 18%; transform: translateX(-50%); color: rgba(232,228,218,0.55); letter-spacing: 0.14em; text-transform: uppercase; font-size: 11px; pointer-events: none; transition: opacity 1.2s; text-align: center; }
+    @media (max-width: 600px) {
+      #hud { font-size: 9px; top: 10px; left: 10px; right: 10px; max-width: none; padding: 6px 8px; white-space: pre-wrap; }
+      #readout { top: auto; bottom: calc(64px + env(safe-area-inset-bottom)); right: 12px; }
+      #bar { flex-wrap: nowrap; overflow-x: auto; justify-content: flex-start; left: 10px; right: 10px; transform: none; max-width: none; padding-bottom: 2px; scrollbar-width: none; }
+      #bar button { padding: 7px 9px; font-size: 10px; flex: 0 0 auto; }
+    }
+  </style>
+</head>
+<body>
+  <div id="vignette"></div>
+  <div class="crop tl"></div><div class="crop tr"></div><div class="crop bl"></div><div class="crop br"></div>
+  <div id="hud"></div>
+  <div id="readout"></div>
+  <div id="hint">drag the plate to tilt &middot; grab the marble &middot; drag a cloth</div>
+  <div id="bar"></div>
+  <div id="loading">Stopping down&hellip;</div>
+  <script type="module" src="./main.ts"></script>
+</body>
+</html>

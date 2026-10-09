@@ -14,8 +14,7 @@
     "noFallthroughCasesInSwitch": true,
     "useDefineForClassFields": true,
     "verbatimModuleSyntax": false,
-    "baseUrl": ".",
-    "paths": { "@shared/*": ["src/shared/*"] }
+    "paths": { "@shared/*": ["./src/shared/*"] }
   },
-  "include": ["src", "games", "vite.config.ts"]
+  "include": ["src", "games"]
 }

@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="dark" />
+  <title>Sound kit spike</title>
+  <link rel="stylesheet" href="./demo.css" />
+</head>
+<body>
+  <header class="bar" id="bar">
+    <div class="brand">
+      <h1>Sound kit</h1>
+      <p class="sub">Procedural WebAudio for all six games. No samples.</p>
+    </div>
+    <div class="controls" id="controls"></div>
+  </header>
+  <main id="app">
+    <section class="panel scope-panel">
+      <canvas id="scope" aria-label="Output oscilloscope and spectrum"></canvas>
+      <div class="statline" id="statline">Not started</div>
+    </section>
+    <section class="panel" id="scenes"></section>
+    <section class="panel" id="pad-panel"></section>
+    <div id="groups"></div>
+  </main>
+  <script type="module" src="./main.ts"></script>
+</body>
+</html>

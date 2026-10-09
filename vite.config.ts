@@ -17,7 +17,11 @@ export default defineConfig({
     sourcemap: false,
     chunkSizeWarningLimit: 4096,
     rollupOptions: {
-      input: { main: resolve(root, 'index.html'), ...Object.fromEntries(gamePages) },
+      input: {
+        main: resolve(root, 'index.html'),
+        ...(existsSync(resolve(root, '404.html')) ? { notFound: resolve(root, '404.html') } : {}),
+        ...Object.fromEntries(gamePages),
+      },
     },
   },
   resolve: { alias: { '@shared': resolve(root, 'src/shared') } },

@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en-CA">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Photochem spike</title>
+    <meta name="description" content="Pure-TypeScript photochemistry model for darkroom games: silver gelatin, film and cyanotype." />
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #14100d;
+        --panel: #1f1915;
+        --panel-2: #2a221c;
+        --ink: #efe6da;
+        --muted: #a5978a;
+        --line: #3a3029;
+        --grid: rgba(255, 240, 220, 0.08);
+        --safe: #ff9a3c;
+        --blue: #4f8fd6;
+        --ok: #8fcf7a;
+        --bad: #ff6b5a;
+        --radius: 10px;
+        font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; background: var(--bg); color: var(--ink); }
+      body { min-height: 100vh; -webkit-text-size-adjust: 100%; }
+      header {
+        display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 16px;
+        padding: 12px 16px 0; border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 5;
+        background: color-mix(in srgb, var(--bg) 92%, transparent); backdrop-filter: blur(6px);
+      }
+      header h1 { font-size: 17px; margin: 0; font-weight: 650; letter-spacing: -0.01em; }
+      header h1 small { color: var(--muted); font-weight: 450; font-size: 13px; margin-left: 6px; }
+      nav { display: flex; gap: 2px; overflow-x: auto; width: 100%; scrollbar-width: none; }
+      nav button {
+        background: none; border: 0; color: var(--muted); font: inherit; font-size: 14px; padding: 10px 12px 9px;
+        border-bottom: 2px solid transparent; cursor: pointer; white-space: nowrap; min-height: 40px;
+      }
+      nav button[aria-selected='true'] { color: var(--ink); border-bottom-color: var(--safe); }
+      nav button:focus-visible, button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+      main { padding: 14px 16px 40px; }
+      .tab { display: none; }
+      .tab.on { display: block; }
+      .layout { display: grid; grid-template-columns: 330px minmax(0, 1fr); gap: 16px; align-items: start; }
+      @media (max-width: 860px) { .layout { grid-template-columns: minmax(0, 1fr); } .layout > .stage { order: -1; } }
+      canvas.big, .print-wrap { scroll-margin-top: 110px; }
+      .controls { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 6px 12px 12px; }
+      @media (min-width: 861px) { .controls { position: sticky; top: 96px; max-height: calc(100vh - 110px); overflow: auto; } }
+      .grp { border-bottom: 1px solid var(--line); padding: 4px 0; }
+      .grp:last-of-type { border-bottom: 0; }
+      .grp summary { cursor: pointer; font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--safe); padding: 8px 0; list-style: none; }
+      .grp summary::-webkit-details-marker { display: none; }
+      .grp summary::before { content: '▸ '; }
+      .grp[open] summary::before { content: '▾ '; }
+      .ctl { margin: 6px 0 10px; }
+      .ctl-head { display: flex; justify-content: space-between; gap: 8px; font-size: 13px; margin-bottom: 4px; }
+      .ctl-head output { color: var(--safe); font-variant-numeric: tabular-nums; font-family: ui-monospace, Consolas, monospace; font-size: 12px; }
+      .ctl input[type='range'] { width: 100%; accent-color: var(--safe); height: 26px; margin: 0; touch-action: pan-y; }
+      .ctl select { width: 100%; background: var(--panel-2); color: var(--ink); border: 1px solid var(--line); border-radius: 6px; padding: 7px 8px; font: inherit; font-size: 13px; min-height: 36px; }
+      .ctl-toggle { display: flex; align-items: center; gap: 8px; font-size: 13px; min-height: 30px; }
+      .ctl-toggle input { width: 18px; height: 18px; accent-color: var(--safe); }
+      .hint { font-size: 11.5px; color: var(--muted); margin-top: 2px; line-height: 1.35; }
+      .row { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 4px; }
+      button.act {
+        background: var(--panel-2); color: var(--ink); border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px;
+        font: inherit; font-size: 13px; cursor: pointer; min-height: 38px;
+      }
+      button.act.primary { background: var(--safe); color: #1b0f05; border-color: var(--safe); font-weight: 650; }
+      button.act[aria-pressed='true'] { border-color: var(--safe); color: var(--safe); }
+      .stage { min-width: 0; }
+      .hero { display: grid; grid-template-columns: minmax(0, 1fr) 260px; gap: 14px; align-items: start; }
+      @media (max-width: 1100px) { .hero { grid-template-columns: minmax(0, 1fr); } }
+      .print-wrap { background: #0c0a08; border: 1px solid var(--line); border-radius: var(--radius); padding: 14px; display: flex; justify-content: center; }
+      canvas.big { width: 100%; max-width: 760px; height: auto; image-rendering: auto; border-radius: 2px; box-shadow: 0 6px 30px rgba(0,0,0,0.6); touch-action: none; cursor: crosshair; }
+      .facts { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 10px 12px; font-size: 12.5px; }
+      .facts dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 4px 10px; }
+      .facts dt { color: var(--muted); }
+      .facts dd { margin: 0; font-variant-numeric: tabular-nums; }
+      .log { font-family: ui-monospace, Consolas, monospace; font-size: 11.5px; color: var(--ink); background: #0c0a08; border: 1px dashed var(--line); padding: 8px 10px; border-radius: 6px; margin: 10px 0 0; line-height: 1.45; }
+      .strip { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin-top: 14px; }
+      .strip figure { margin: 0; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 6px; }
+      .strip canvas { width: 100%; height: auto; display: block; border-radius: 2px; cursor: zoom-in; }
+      .strip figcaption { font-size: 12px; margin-top: 5px; display: flex; flex-direction: column; }
+      .strip figcaption span { color: var(--muted); font-size: 11px; }
+      .plots { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 520px), 1fr)); gap: 14px; }
+      .plots figure { margin: 0; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 10px; min-width: 0; }
+      .plots canvas { width: 100%; height: auto; display: block; }
+      .plots figcaption { font-size: 12px; color: var(--muted); margin-top: 6px; line-height: 1.4; }
+      table { border-collapse: collapse; width: 100%; font-size: 12.5px; }
+      th, td { text-align: left; padding: 5px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+      th { color: var(--muted); font-weight: 550; position: sticky; top: 0; background: var(--panel); }
+      td.num { font-variant-numeric: tabular-nums; font-family: ui-monospace, Consolas, monospace; font-size: 12px; }
+      .pass { color: var(--ok); } .fail { color: var(--bad); font-weight: 650; }
+      .card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px; margin-bottom: 14px; overflow-x: auto; }
+      .card h2 { font-size: 14px; margin: 0 0 8px; }
+      .muted { color: var(--muted); }
+      .perf { font-family: ui-monospace, Consolas, monospace; font-size: 11.5px; color: var(--muted); margin-top: 8px; }
+      .busy { opacity: 0.55; transition: opacity 0.15s; }
+      .swatches { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+      .swatches div { width: 46px; height: 30px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.1); font-size: 9px; display: flex; align-items: flex-end; padding: 2px; color: rgba(255,255,255,0.8); text-shadow: 0 1px 2px #000; }
+      .film-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap: 12px; }
+      .film-grid figure { margin: 0; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 8px; }
+      .film-grid canvas { width: 100%; height: auto; display: block; }
+      .film-grid figcaption { font-size: 12px; margin-top: 6px; }
+      .zoom { position: fixed; inset: 0; background: rgba(0,0,0,0.88); display: none; align-items: center; justify-content: center; z-index: 20; padding: 16px; }
+      .zoom.on { display: flex; }
+      .zoom canvas { max-width: 100%; max-height: 100%; width: auto; height: auto; image-rendering: pixelated; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>photochem <small>silver, film and cyanotype chemistry for the darkroom games</small></h1>
+      <nav role="tablist" id="tabs"></nav>
+    </header>
+    <main id="app"></main>
+    <div class="zoom" id="zoom" role="dialog" aria-label="Enlarged stage"></div>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

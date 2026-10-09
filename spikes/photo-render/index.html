@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Photo Render Spike</title>
+  </head>
+  <body>
+    <header>
+      <h1>photo-render</h1>
+      <span class="sub">thin-lens accumulation · rolling shutter · calibrated exposure · film</span>
+      <span class="caps" id="caps">…</span>
+    </header>
+    <main>
+      <section id="stage">
+        <div id="presets"></div>
+        <div id="finder-wrap">
+          <canvas id="finder"></canvas>
+          <div id="finder-overlay"><div class="frame"></div><div class="focus" id="focus-ring"></div></div>
+          <div id="finder-label">VIEWFINDER · drag to look · tap to focus · wheel/pinch to zoom</div>
+          <div id="lamp" title="shutter open"></div>
+        </div>
+        <div id="hud"></div>
+        <div id="actions">
+          <button id="shoot">Take photo</button>
+          <button id="abort" disabled>Abort</button>
+          <div id="progress"><div></div></div>
+          <span id="status" style="font: 12px ui-monospace, monospace; color: #a99d8a"></span>
+        </div>
+        <div id="print-wrap" class="empty">
+          <canvas id="print" width="1200" height="800"></canvas>
+          <div id="caption"><span>no exposure yet: press Take photo (or Space)</span></div>
+        </div>
+        <div id="print-tools"></div>
+        <div id="perf"></div>
+      </section>
+      <aside id="panel"></aside>
+    </main>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

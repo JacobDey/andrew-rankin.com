@@ -11,25 +11,24 @@ Tagline: *Turn off the lights. Rock the tray. Wait for it.*
 
 ## Pillars
 
-1. **Darkness is the main material.** The light in the room is the core mechanic, and how the game looks should follow from that. Most of the time you see one amber bulb, a wet surface and your own hands.
-2. **Truth is the delight.** Every number, smell and failure is real or close to real. A working printer should laugh at least three times in five minutes.
-3. **Quiet, warm, nocturnal.** It should feel like 1 a.m. in a basement with the radio on. There is no score, no fail screen and no hurry.
+1. **Darkness is the main material.** Light is the mechanic, so it is also the look: one amber bulb, a wet surface, your hands.
+2. **Truth is the delight.** Every number, smell and failure is real or near-real. A working printer should laugh three times in five minutes.
+3. **Quiet, warm, nocturnal.** 1 a.m., a basement, the radio on. No score, no fail screen, no hurry.
 
 ## Fiction and tone
 
 **Setting.** *Lantern Street Community Darkroom, Basement Unit B.* It is a shared darkroom under a camera-repair shop that has closed. You have the last key. The previous keyholder, **O.**, never appears on screen. She left the bench in good order, and she taped notes to everything: masking tape, red grease pencil, signed "— O."
 
-**The notes are the tutorial.** There are no popups. Each station has 2–4 tape notes. The tutorial voice is O.'s voice: dry, kind, slightly bossy. All copy is original. Examples:
+**The notes are the tutorial.** No popups: each station has 2–4 tape notes in O.'s voice (dry, kind, slightly bossy; all copy original):
 
-- On the fix tongs: *"FIX TONGS NEVER TOUCH DEV. I mean it. — O."*
-- On the safelight: *"Coin test this every spring. Trust nothing that glows."*
-- On the ferricyanide jar: *"Ferri-CYANIDE. Not cyanide. It's fine. Don't add strong acid and heat it — then it's not fine."* This line is a wink at the "cyanide chemistry" in Andrew's dictation, and the warning itself is true.
-- On the cyanotype table: *"Coat in lamplight. Dry in the dark. Expose in the sun. Forgive in the wash."*
-- On the door: *"If you can smell vinegar, you're doing fine."*
+- Fix tongs: *"FIX TONGS NEVER TOUCH DEV. I mean it. — O."*
+- Ferricyanide jar: *"Ferri-CYANIDE. Not cyanide. It's fine. Don't add strong acid and heat it — then it's not fine."* A wink at the "cyanide chemistry" in Andrew's dictation, and the warning is true.
+- Cyanotype table: *"Coat in lamplight. Dry in the dark. Expose in the sun. Forgive in the wash."*
+- Door: *"If you can smell vinegar, you're doing fine."*
 
-**The negative box.** A shoebox on the shelf holds strips of O.'s last roll, 12 frames rendered procedurally (see Art direction). The frames are a fire escape with laundry, a cat on a radiator, a pear on a sill, a bus shelter at night, two hands holding a mug, a lighthouse, the darkroom door, and so on. Frame 12 is a self-portrait in a dark window, with grease pencil on the sleeve: *"your turn."* That is the whole story. It is ambient and has no plot. The plotted mysteries belong to `plates` and `latent`. Here the story is only a feeling of inheritance.
+**The negative box.** A shoebox holds O.'s last roll: 12 procedural frames (fire escape with laundry, cat on a radiator, pear on a sill, bus shelter at night, hands around a mug, the darkroom door…). Frame 12 is a self-portrait in a dark window; grease pencil on the sleeve says *"your turn."* That is the whole story: ambient, unplotted, a feeling of inheritance. Plotted mysteries belong to `plates` and `latent`.
 
-**Captions for smells.** Sounds and smells both get optional captions in a small italic subtitle line: *[drip]*, *[fan hum]*, *[vinegar]*, *[sulfur, faint]* (fixer), *[wet paper]*. This serves accessibility and is also a running joke.
+**Smell captions.** Optional italic subtitles caption sounds *and* smells: *[drip]*, *[fan hum]*, *[vinegar]*, *[sulfur, faint]*. Accessibility and a running joke.
 
 ## Art direction
 
@@ -67,11 +66,11 @@ Tagline: *Turn off the lights. Rock the tray. Wait for it.*
 
 ### Materials
 
-- **Trays.** Molded plastic with ribbed bottoms and a pour spout in one corner. They are white (DEV), red (STOP) and gray (FIX). Under the safelight they look identical, so each has a strip of masking tape with its job in grease pencil. That is what real printers do.
-- **Liquid.** A heightfield surface with Fresnel and a reflection of the bulb. Paper under the liquid is darker and glossier. At the waterline the paper shows a darker damp band (the meniscus), and dry corners curl slightly. RC paper curls toward the emulsion.
-- **Paper.** Fiber texture comes from noise. RC "pearl" gets a fine stipple in the normal map; fiber gets a soft cockle. Wet paper has higher specular and lower albedo.
-- **Bench.** Stainless sink, pegboard, a wooden clothesline with spring clothespins, and drips falling from the prints. A towel hangs on a hook and gets darker each time you dry your hands. Bamboo tongs have rubber tips; the fix tongs are stainless.
-- **Enlarger.** A column, a red filter swing-out under the lens, a four-blade easel and a grain focuser. The beam is visible in the air with **dust motes** (a cheap particle cone), and it's the only cool-white light in the dark.
+- **Trays.** Ribbed plastic with a corner spout: white (DEV), red (STOP), gray (FIX). Under the safelight they look identical, so each carries a masking-tape label in grease pencil, as real printers do.
+- **Liquid.** Heightfield with Fresnel and the bulb's reflection. Submerged paper is darker and glossier; the waterline leaves a darker damp meniscus band; dry corners curl (RC curls toward the emulsion).
+- **Paper.** RC "pearl" gets a fine normal-map stipple; fiber gets a soft cockle. Wet means higher specular, lower albedo.
+- **Bench.** Stainless sink, pegboard, a clothesline with spring clothespins and dripping prints, a towel that darkens each time you dry your hands, bamboo dev tongs and steel fix tongs.
+- **Enlarger.** Column, swing-out red filter, four-blade easel, grain focuser. The beam is visible in the air with **dust motes**: the only cool-white light in the dark.
 
 ### Typography and UI
 
@@ -105,13 +104,11 @@ The logbook doubles as the save-state browser. Each save is a page with a thumbn
 | Slosh | Band-passed noise. Gain and cutoff are driven by the RMS surface velocity of each tray, and peaks trigger short "lap" transients against the tray wall. |
 | Pour | A comb filter whose resonance rises as the jug empties ("glug"). |
 | Paper into liquid | A soft low thump plus a short hiss. Paper slapping the bench is a dry transient. |
-| Tongs | Bamboo is a short wooden knock (two damped sines). Steel is an FM click. |
-| Light switch / pull chain | A plastic click, or a bead-chain rattle (granular clicks). |
-| Fluorescent start | *tink…tink* (two sharp clicks), then 120 Hz buzz with harmonics fading in. |
-| Enlarger | A lamp *thunk* and a faint fan. The focus knob is a ratchet of clicks spaced by knob velocity. |
-| Darkroom timer | A mechanical tick each second. At zero, a bell made from inharmonic partials (1, 2.76, 5.40, 8.93) with long decay. |
-| UV box | Fan plus a faint 15 kHz capacitor whine (rolled off on phones). |
-| Window/sun | Wind noise and procedural birds (FM chirps with randomized sweeps). |
+| Tongs, switches | Bamboo knock (two damped sines), steel FM click; pull-chain as granular bead rattle. |
+| Fluorescent start | *tink…tink*, then 120 Hz buzz with harmonics fading in. |
+| Enlarger | Lamp *thunk*, faint fan; focus knob = clicks spaced by knob velocity. |
+| Darkroom timer | Mechanical tick per second; at zero a bell of inharmonic partials (1, 2.76, 5.40, 8.93), long decay. |
+| UV box / window | Fan + faint 15 kHz whine; outside, wind noise and FM-chirp birds. |
 | **The radio** | A shelf radio with a tuning knob. Between stations is static. Station 1 is late-night jazz: a walking bass, brushes on noise and FM e-piano ii–V–I voicings, all through a 300–3000 Hz "tiny speaker" bandpass. Station 2 is ambient drone. Station 3 is beeps under static, a nod to the darker games next door. |
 
 There is one more radio detail: the radio's **dial lamp** is a tiny tungsten bulb with black tape over it. If you peel the tape off, the lamp fogs paper left nearby, very slowly. Every printer has taped over a standby LED.
@@ -157,14 +154,14 @@ The **safe time** is tuned so unwrapped VC paper shows a just-visible highlight 
 
 ### Cyanotype: the full iron workflow
 
-1. **Stock solutions.** **A:** 25 g ferric ammonium citrate (green) in 100 ml water. **B:** 10 g potassium ferricyanide in 100 ml water. This is the classic 1842 recipe. Stock A **grows mold** if left for many in-game days, which is a real nuisance.
-2. **Mix** A and B 1:1 just before use. The working sensitizer lasts a few hours.
-3. **Coat** under tungsten or dim light with a hake brush or a glass rod, about 2 ml per 8×10. One coat is pale and two coats are deeper. Hot-press paper is smooth; cold-press is textured and shows brush marks (a feature).
-4. **Dry in the dark**, about 20 min, or with the hair dryer (a loud, satisfying noise).
-5. **Expose** in a contact frame with a **split back**. You can open one half to peek without losing registration, which practitioners love. UV box 365 nm for about 8–15 min. Sun for about 10–20 min (summer noon) up to 60 min (overcast); exposure integrates live while clouds pass. The coat goes yellow-green, then blue-gray, and finally the **deep shadows "bronze"** (go gray-olive and reverse). That bronzing is how real printers know exposure is done.
-6. **Wash** about 5 min. The yellow unexposed salts bleed out as visible yellow plumes and the blue deepens. A splash of vinegar in the water keeps the highlights crisp. Alkaline water bleeds the blue.
-7. **Peroxide.** A capful of 3% H₂O₂ per liter oxidizes the image instantly to its final Prussian blue (see Wow 2). Without peroxide, the blue still deepens, but slowly, over 24 in-game hours.
-8. **Toning.** Bleach in dilute washing soda until the image goes pale yellow. Then tone in tea, coffee or tannin for about 20 min, which gives browns through to aubergine-black.
+1. **Stocks** (the classic 1842 recipe). **A:** 25 g ferric ammonium citrate (green) per 100 ml water. **B:** 10 g potassium ferricyanide per 100 ml. Stock A **grows mold** after many in-game days, a real nuisance.
+2. **Mix** A+B 1:1 just before use; the working sensitizer lasts a few hours.
+3. **Coat** under tungsten or dim light with a hake brush or glass rod, about 2 ml per 8×10. Two coats go deeper. Cold-press paper shows brush marks (a feature).
+4. **Dry in the dark** (~20 min), or with the hair dryer (loud, satisfying).
+5. **Expose** in a **split-back** contact frame: open one half to peek without losing registration. UV 365 nm about 8–15 min; sun 10–20 min at summer noon, up to 60 min overcast, integrated live as clouds pass. The coat goes yellow-green → blue-gray → **deep shadows "bronze"** (gray-olive, reversing). Bronzing is how real printers know exposure is done.
+6. **Wash** about 5 min. Unexposed salts bleed off as yellow plumes and the blue deepens. A splash of vinegar keeps highlights crisp; alkaline water bleeds the blue.
+7. **Peroxide.** A capful of 3% H₂O₂ per liter gives the final Prussian blue instantly (Wow 2). Without it, the blue deepens over 24 in-game hours.
+8. **Toning.** Bleach in dilute washing soda to pale yellow, then tea, coffee or tannin for ~20 min: browns through aubergine-black.
 
 The chemistry, written in the logbook in O.'s hand: UV reduces Fe³⁺ citrate to Fe²⁺. Fe²⁺ plus ferricyanide makes insoluble Fe₄[Fe(CN)₆]₃, which is Prussian blue. Unexposed ferric salt is soluble and washes away.
 
@@ -174,16 +171,9 @@ The chemistry, written in the logbook in O.'s hand: UV reduces Fe³⁺ citrate t
 
 ### Photo prep: the digital negative desk
 
-This is a light table beside a small grayscale monitor. It takes an imported PNG to a transparency:
+A light table beside a small grayscale monitor takes an imported PNG to a transparency: **grayscale** (R/G/B channel mixer) → **invert** → **flip horizontally** (ink side faces the emulsion in contact printing; a tape note explains) → **curve** (presets "cyanotype", "silver contact") → optional **UV-blocking tint** (real digital-negative printers colorize because some inks barely block UV) → print on the inkjet (carriage *zzzt-zzzt*; the sheet slides out with a wet-ink sheen for 3 s).
 
-1. Grayscale (channel mixer: R/G/B weights).
-2. **Invert.**
-3. **Flip horizontally.** The ink side faces the emulsion in contact printing; a tape note explains why.
-4. Curve, with presets for "cyanotype" and "silver contact".
-5. Optionally a **UV-blocking tint**. Real digital-negative printers colorize the negative because some inks barely block UV.
-6. Print the transparency on the inkjet. There is a sound for it (a carriage *zzzt-zzzt*), and the sheet slides out with an ink-wet sheen for 3 s.
-
-**Calibration** is a 21-step wedge with 0.15 density per step. Print it, see which step first reaches full Prussian blue, and the desk suggests a curve. This is a real workflow and gives deep satisfaction to the few who use it.
+**Calibration:** print a 21-step wedge (0.15 density per step), note which step first reaches full Prussian blue, and the desk suggests a curve. It's a real workflow, and the few who use it will love it.
 
 ### Small truths that earn a smile
 
@@ -193,19 +183,18 @@ This is a light table beside a small grayscale monitor. It takes an imported PNG
 - **Air bubbles.** Paper slid in face-up can trap bubbles, which leave pale underdeveloped spots. The right method is to slide it in face-down, then flip.
 - **Pulling early.** Pulling a print at 30 s gives muddy highlights. Real "development by inspection" means you wait.
 - **Filed-out carrier.** Choose the filed carrier and the print gets a rough black border with the film's edge printing (`NJ 400 ▸ 12A`), a mark of full-frame honesty.
-- **Unfixed prints go lavender.** An unfixed print brought into room light slowly turns lavender-gray. This is real print-out darkening of silver halide.
-- **The coin test**, as a craft ritual (see Honorable mentions).
+- **Unfixed prints go lavender.** An unfixed print brought into room light slowly turns lavender-gray (real print-out darkening of silver halide).
 
 ## Three wow moments (the screenshots)
 
 ### 1. The meniscus bloom
-Drop exposed paper into the developer and rock the tray. The image develops **only where the liquid has touched it**: a crescent of picture follows the wave across the sheet, and the dry corner stays blank cream. Because the image arrives shadows-first, the leading edge of the wave carries only blacks and the trailing part carries midtones. In the amber light the bulb's reflection runs across the wet surface. **This is the title screen too.** The game opens in black, with the drip, the fan and a pull-chain. The first print you see developing is the title, **DARKROOM**, rising out of the paper in the tray as the wave passes.
+Drop exposed paper in the developer and rock the tray. The image develops **only where the liquid has touched**: a crescent of picture chases the wave across the sheet while the dry corner stays blank. Because silver arrives shadows-first, the wave's leading edge carries only blacks and midtones fill in behind it, with the bulb's reflection streaking over it all. **This is also the title screen.** The game opens in black: drip, fan, a pull-chain. The first print you see developing is the word **DARKROOM**, rising out of the paper as the wave passes.
 
 ### 2. Peroxide plume
-A finished cyanotype rests in the wash tray, pale and slightly greenish blue. Tip the brown bottle. A capful of peroxide enters as a visible eddy (a dye advected by the tray's velocity field), and **deep Prussian blue spreads outward from where it lands**, turning the print from denim to midnight in about two seconds. Meanwhile the last yellow sensitizer still trails off the paper's edge. Blue, yellow and a white rag border in one frame: this is the shot people post.
+A finished cyanotype rests in the wash, pale and greenish. Tip the brown bottle: the peroxide enters as a visible eddy (dye advected by the tray's velocity field), and **deep Prussian blue spreads outward from where it lands**, denim to midnight in about two seconds, while the last yellow sensitizer still trails off the edge. Blue, yellow and a white rag border in one frame: the shot people post.
 
 ### 3. The beam
-The room is fully dark. The enlarger is on. A cone of cool light filled with drifting dust falls onto the easel, where the *negative* image glows reversed. Your hand (the cursor becomes a hand when it enters the beam) dodges a face, and its soft shadow wobbles on the paper while the timer ticks and the lume hands crawl. It is the only color temperature in the room that isn't amber. A free-camera "photo mode" lets you frame it.
+Full dark, enlarger on. A cone of cool light full of drifting dust falls on the easel, where the *negative* image glows reversed. Your cursor becomes a hand inside the beam and dodges a face; its soft shadow wobbles on the paper while the timer ticks and the lume hands crawl. It's the only light in the room that isn't amber. A free-camera photo mode lets you frame it.
 
 ### Honorable mentions
 - **Sabattier flash.** Tap the room light for one second at 40 s into development. The print partially reverses, and Mackie lines appear along the edges. It is a real effect and an accident many printers have had. When it happens, the logbook writes *"solarized?"* in the margin.
@@ -214,7 +203,7 @@ The room is fully dark. The enlarger is on. A cone of cool light filled with dri
 
 ## Share card
 
-"Take it upstairs" renders the dry print on a neutral gray scanner bed. It shows the paper texture, a slight curl and a grease-pencil caption from the logbook line (`Gr 3½ · f/8 · 14s · Dev 90s @ 20°C`) in the margin, and exports a PNG. A cyanotype card shows the rag deckle and the brush strokes past the image edge. The card is the game's sharing mechanism, so it should look gallery-good.
+"Take it upstairs" exports a PNG of the dry print on a gray scanner bed: paper texture, slight curl, the logbook line in grease pencil in the margin (`Gr 3½ · f/8 · 14s · Dev 90s @ 20°C`). Cyanotype cards show the rag deckle and brush strokes past the image edge. This card is how the game gets shared, so it must look gallery-good.
 
 ## Notes for the synthesizer (priorities)
 

@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Material library spike</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <header class="bench-head">
+    <div class="title">
+      <h1>Specimen drawer</h1>
+      <p class="sub"><span id="count">34</span> procedural macro surfaces, baked on the GPU from a seed. Raking light from the upper left, 20&deg;.</p>
+    </div>
+    <div class="controls">
+      <label>Seed <input id="seed" type="number" value="1" min="0" step="1" inputmode="numeric" /></label>
+      <label>Filter <input id="filter" type="search" placeholder="name or alias" autocomplete="off" /></label>
+      <span id="status" class="status" aria-live="polite">Warming the lamp&hellip;</span>
+    </div>
+  </header>
+  <main id="grid" class="grid" aria-label="Materials"></main>
+
+  <div id="inspector" class="inspector" hidden>
+    <div class="stage-wrap">
+      <canvas id="stage" aria-label="Macro view. Drag to swing the lamp, right-drag or two fingers to tilt, wheel or pinch to rack in."></canvas>
+      <div class="hud">
+        <span id="hud-scale"></span>
+        <span id="hud-res"></span>
+      </div>
+      <div class="scalebar"><i id="scalebar-bar"></i><span id="scalebar-label"></span></div>
+    </div>
+    <aside class="panel">
+      <button id="close" class="close" aria-label="Back to the drawer">&times;</button>
+      <p class="kicker" id="i-kicker"></p>
+      <h2 id="i-name"></h2>
+      <p class="label" id="i-label"></p>
+      <div class="tiles" id="i-tiles"></div>
+      <div class="row modes" id="modes" role="group" aria-label="Channel"></div>
+      <div class="row">
+        <label class="grow">Lamp azimuth <input id="az" type="range" min="0" max="360" value="135" /></label>
+        <label class="grow">Elevation <input id="el" type="range" min="5" max="90" value="20" /></label>
+      </div>
+      <div class="row">
+        <label class="grow">Tilt U <input id="tu" type="range" min="-5" max="5" step="0.1" value="0" /></label>
+        <label class="grow">Tilt V <input id="tv" type="range" min="-5" max="5" step="0.1" value="0" /></label>
+      </div>
+      <div class="row">
+        <button id="ring" class="chip" aria-pressed="false">Ring light</button>
+        <span class="grow"></span>
+        <span>Bake</span>
+        <span id="sizes" class="seg"></span>
+      </div>
+      <div class="row">
+        <label class="grow">Name it <input id="guess" type="text" placeholder="type a guess" autocomplete="off" /></label>
+      </div>
+      <p id="guess-out" class="guess-out" aria-live="polite"></p>
+      <dl class="facts" id="i-facts"></dl>
+    </aside>
+  </div>
+  <script type="module" src="./main.ts"></script>
+</body>
+</html>

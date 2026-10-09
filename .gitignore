@@ -6,3 +6,5 @@ shots/
 .DS_Store
 test-results/
 playwright-report/
+
+.vercel

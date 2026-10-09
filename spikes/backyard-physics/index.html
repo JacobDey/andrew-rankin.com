@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#141210" />
+  <title>Backyard Physics (spike)</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <canvas id="view" aria-label="A sunny backyard full of physics toys"></canvas>
+
+  <header class="rebate">
+    <span class="edge">RANKIN 400 &#9656;06 BACKYARD SPIKE</span>
+    <span class="edge" id="stats">WINDING ON&hellip;</span>
+  </header>
+
+  <div class="crosshair" id="crosshair" aria-hidden="true"></div>
+  <div class="finder" id="finder" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+  <div class="hint" id="hint" role="status"></div>
+
+  <section class="panel" id="panel">
+    <label class="sun">
+      <span class="label">Sun</span>
+      <input id="sun" type="range" min="5.5" max="21.5" step="0.05" value="16" aria-label="Time of day" />
+      <output id="clock">16:00</output>
+    </label>
+    <div class="row">
+      <button id="btn-mode" type="button" title="Walk or orbit (O)">Orbit</button>
+      <button id="btn-throw" type="button" title="Throw what you carry (F)">Throw</button>
+      <button id="btn-raise" type="button" title="Raise the camera to your eye (E)" hidden>Raise</button>
+      <button id="btn-snap" type="button" title="Take a photo with the box camera (C)" hidden>Snap</button>
+      <button id="btn-water" type="button" title="Sprinkler on or off (V)">Water off</button>
+      <button id="btn-help" type="button" aria-label="How to play" title="How to play">?</button>
+      <select id="quality" aria-label="Quality">
+        <option value="high">High</option>
+        <option value="medium">Medium</option>
+        <option value="low">Low</option>
+      </select>
+    </div>
+  </section>
+
+  <div class="touch-buttons" id="touch-buttons">
+    <button id="btn-jump" type="button" aria-label="Jump">Jump</button>
+    <button id="btn-run" type="button" aria-label="Run">Run</button>
+  </div>
+
+  <figure class="polaroid" id="polaroid" hidden>
+    <img id="photo" alt="Photo from the box camera" />
+    <figcaption id="photo-caption">Backyard, 16:00</figcaption>
+  </figure>
+
+  <dialog id="help" class="help">
+    <h2>Backyard</h2>
+    <p><b>Move</b> WASD or the left thumb. <b>Look</b> drag on empty space (or press L for mouse-look).</p>
+    <p><b>Grab</b> press and drag a thing; let go to fling it. <b>Tap</b> a thing to carry it, <b>F</b> or Throw to throw it, <b>G</b> to drop it. Wheel or pinch pushes it away or pulls it closer.</p>
+    <p>Carry the <b>box camera</b> from the picnic table. <b>E</b> or Raise looks through it, <b>C</b> or Snap takes a photo.</p>
+    <p><b>O</b> orbit view. <b>V</b> sprinkler. <b>T</b> skip an hour. <b>P</b> pause.</p>
+    <form method="dialog"><button>Got it</button></form>
+  </dialog>
+
+  <div class="loader" id="loader"><span>Winding on&hellip;</span></div>
+
+  <script type="module" src="./main.ts"></script>
+</body>
+</html>
