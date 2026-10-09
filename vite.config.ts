@@ -25,6 +25,9 @@ export default defineConfig({
     },
   },
   resolve: { alias: { '@shared': resolve(root, 'src/shared') } },
+  // Pre-bundle the heavy deps once and never re-discover mid-session: a re-optimize
+  // while many agents hit the dev server leaves it serving 504 'Outdated Optimize Dep'.
+  optimizeDeps: { include: ['three', '@dimforge/rapier3d-compat'], noDiscovery: true },
   server: { host: '127.0.0.1', port: 5173, strictPort: true },
   preview: { host: '127.0.0.1', port: 4173 },
 })

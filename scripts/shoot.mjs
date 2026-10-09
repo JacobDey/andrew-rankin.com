@@ -73,9 +73,9 @@ const killer = setTimeout(() => {
   process.exit(2)
 }, opt.timeout)
 
-// Many agents share one machine with little RAM: at most SHOOT_SLOTS (default 3)
+// Many agents share one machine with little RAM: at most SHOOT_SLOTS (default 2)
 // Chromium instances run at once. Slots are lock files; stale ones expire.
-const SLOTS = Number(process.env.SHOOT_SLOTS || 3)
+const SLOTS = Number(process.env.SHOOT_SLOTS || 2)
 const lockDir = resolve('shots/.locks')
 mkdirSync(lockDir, { recursive: true })
 let lockFile = null
