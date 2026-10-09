@@ -246,6 +246,36 @@ $('bMaps').addEventListener('click', () => { $('maps').classList.toggle('show');
   toast('Exposed. Rock the tray.')
 })
 
+// "Phone is the tray": DeviceOrientation drives the held tilt (iOS needs an explicit permission tap).
+let gyro: { g0: number; b0: number; g: number; b: number } | null = null
+const gyroBtn = $('bGyro') as HTMLButtonElement
+if (coarse && 'DeviceOrientationEvent' in window) gyroBtn.hidden = false
+gyroBtn.addEventListener('click', async () => {
+  if (gyro) {
+    gyro = null
+    gyroBtn.classList.remove('on')
+    tray.release()
+    return
+  }
+  const DOE = DeviceOrientationEvent as unknown as { requestPermission?: () => Promise<string> }
+  if (typeof DOE.requestPermission === 'function') {
+    try {
+      if ((await DOE.requestPermission()) !== 'granted') return toast('Motion access was declined.')
+    } catch {
+      return toast('Motion access is not available.')
+    }
+  }
+  gyro = { g0: NaN, b0: NaN, g: 0, b: 0 }
+  gyroBtn.classList.add('on')
+  toast('Hold the phone flat, then tip it.')
+})
+window.addEventListener('deviceorientation', (e) => {
+  if (!gyro || e.gamma == null || e.beta == null) return
+  if (Number.isNaN(gyro.g0)) { gyro.g0 = e.gamma; gyro.b0 = e.beta }
+  gyro.g = e.gamma - gyro.g0
+  gyro.b = e.beta - gyro.b0
+})
+
 function toggleLight(): void {
   const room = view.lighting === 'safe'
   view.setLighting(room ? 'room' : 'safe')
@@ -277,12 +307,20 @@ function driveControls(dt: number): void {
   if (tipHeld) {
     const [x, y] = spoutTilt()
     tray.tilt(x, y)
+  } else if (gyro && mode !== 'tilt' && !Number.isNaN(gyro.g0)) {
+    // phone right edge down -> liquid runs screen-right; top edge down (beta falls) -> runs screen-up
+    const d = view.screenToTrayDir(gyro.g, gyro.b)
+    const len = Math.hypot(d.x, d.y)
+    if (len > 0.5) {
+      const deg = Math.min(30, len)
+      tray.tilt((d.x / len) * deg * DEG, (d.y / len) * deg * DEG)
+    } else tray.tilt(0, 0)
   } else if (rocking && mode !== 'tilt') {
     rockT += dt
     // lift each corner in turn: a slow rotating tilt, the classic darkroom rock. 0.25 Hz stays under both
     // slosh resonances of half a litre in this tray (~0.32 Hz along, ~0.43 Hz across), so it doesn't slop.
     const w = 2 * Math.PI * 0.25
-    tray.tilt(4 * DEG * Math.cos(w * rockT), 3 * DEG * Math.sin(w * rockT))
+    tray.tilt(3 * DEG * Math.cos(w * rockT), 2.2 * DEG * Math.sin(w * rockT))
   } else if (mode !== 'tilt') {
     let kx = 0
     let ky = 0

@@ -21,7 +21,7 @@ const base = process.env.SHOOT_BASE || 'http://127.0.0.1:5173'
 const size = Number(val('size', what === 'determinism' ? 64 : 1024))
 const reps = Number(val('reps', 2))
 const ids = val('ids', '')
-const out = val('out', `shots/materials-${what}${flag('gpu') ? '-gpu' : ''}-${size}.json`)
+const out = val('out', `spikes/materials/results/${what}${flag('gpu') ? '-gpu' : ''}${flag('zoom') ? '-zoom' : ''}-${size}.json`)
 const TIMEOUT = Number(val('timeout', 600000))
 // --dist <dir>: serve a production build (tools/build.mjs) via request interception instead of the dev server
 const dist = val('dist', '')
@@ -131,13 +131,30 @@ function compare(a, b) {
 
 let report
 if (what === 'bench') {
-  report = await run(flag('gpu'), (id) => `__spike.bench({ids: ['${id}'], size: ${size}, reps: ${reps}})`, idList)
+  report = await run(flag('gpu'), (id) => `__spike.bench({ids: ['${id}'], size: ${size}, reps: ${reps}, detail: '${val('detail', 'base')}'})`, idList)
 } else if (what === 'seams') {
   report = await run(flag('gpu'), (id) => `__spike.seams({ids: ['${id}'], size: ${size}})`, idList)
+} else if (what === 'view') {
+  // macro-view frame cost at a given stage size (--w/--h CSS px), per shadow-step setting
+  report = await withSlot(async () => {
+    const args = flag('gpu') ? ['--ignore-gpu-blocklist', '--enable-gpu'] : ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist']
+    const browser = await chromium.launch({ args })
+    try {
+      const page = await browser.newPage({ viewport: { width: Number(val('w', 1280)), height: Number(val('h', 800)) } })
+      await serveDist(page)
+      await page.goto(pageUrl(`?gallery=0&spin=0&bake=1024&open=${val('id', 'rusty-mailbox')}`), { waitUntil: 'load' })
+      await page.waitForFunction(() => !!window.__spike, null, { timeout: 90000 })
+      await page.evaluate(() => window.__spike.waitBaked())
+      return { renderer: await page.evaluate(() => window.__spike.caps.renderer), result: await page.evaluate(() => window.__spike.viewBench(20)) }
+    } finally { await browser.close() }
+  })
+  console.log(JSON.stringify(report))
+} else if (what === 'periodicity') {
+  report = await run(flag('gpu'), (id) => `__spike.periodicity({ids: ['${id}'], size: ${size}})`, idList)
 } else if (what === 'fingerprint') {
   report = await run(flag('gpu'), (id) => `__spike.fingerprint({ids: ['${id}'], size: ${size}})`, idList)
 } else if (what === 'determinism') {
-  const expr = (id) => `__spike.fingerprintData({ids: ['${id}'], size: ${size}, seed: ${Number(val('seed', 7))}})`
+  const expr = (id) => `__spike.fingerprintData({ids: ['${id}'], size: ${size}, seed: ${Number(val('seed', 7))}, zoom: ${flag('zoom')}})`
   const sw = await run(false, expr, idList)
   const hw = await run(true, expr, idList)
   const sw2 = flag('repeat') ? await run(false, expr, idList) : null

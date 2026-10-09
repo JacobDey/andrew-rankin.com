@@ -666,6 +666,17 @@ async function main(): Promise<void> {
   requestAnimationFrame((t) => {
     last = t
     requestAnimationFrame(loop)
+    // Pre-compile the photo path: rendering into a render target uses different program
+    // variants (no tone mapping / output transform), and the first snap otherwise stalls ~1 s.
+    setTimeout(() => {
+      lensCam.position.copy(camera.position)
+      lensCam.quaternion.copy(camera.quaternion)
+      lensCam.updateMatrixWorld()
+      renderer.setRenderTarget(photoRT)
+      const warm = renderer.compileAsync(scene, lensCam)
+      renderer.setRenderTarget(null)
+      warm.catch(() => {})
+    }, 400)
   })
 }
 

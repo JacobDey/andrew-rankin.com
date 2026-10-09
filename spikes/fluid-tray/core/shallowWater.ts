@@ -6,10 +6,16 @@
  *   v  y-velocity on horizontal faces              nx * (ny+1)    index j*nx + i       (face below cell j)
  *   s  passive tracer concentration 0..1 (developer freshness) carried by the same mass fluxes
  *
- * Each substep: semi-Lagrangian momentum advection (optional) -> gravity + pressure gradient + drag ->
- * conservative upwind continuity with a per-cell outflow limiter (never negative, mass exact) -> weir
- * overflow at the rim / spout. Gravity is supplied already rotated into the tray frame (gx, gy tangential,
- * gz normal), so tilting the tray is just a change of (gx, gy, gz); the bed is flat in tray space.
+ * Each substep (forward-backward):
+ *   1. momentum, one fused pass per face: semi-Lagrangian advection (only where the water is deep, never
+ *      across a wet/dry front) + eddy viscosity + gravity/pressure gradient + linear and thin-film drag
+ *   2. continuity: upwind mass fluxes with a per-cell outflow limiter (depth never negative, mass exact),
+ *      weir outflow over the rim / spout, tracer carried by the same fluxes
+ *   3. wave breaking: relax any free-surface slope steeper than maxSlope (conservative)
+ * step(dt) splits dt so (|u| + sqrt(g h)) dt/dx stays under cfl (0.7).
+ *
+ * Gravity is supplied already rotated into the tray frame (gx, gy tangential, gz normal), so tilting the
+ * tray is just a change of (gx, gy, gz); the bed is flat in tray space.
  *
  * Pure TypeScript, no DOM. Units: metres, seconds.
  */

@@ -7,7 +7,16 @@ import { GOLF_BALL, BASKETBALL, PEELING_PAINT, SPONGE, STYROFOAM, TOY_BRICK, VIN
 import { DENIM, WOOL_KNIT, CORDUROY, BURLAP } from './textile'
 import { OAK_BARK, BIRCH_BARK, CORK, LEATHER, MOSS_STONE, LEAF } from './organic'
 
-export const RECIPES: Record<string, string> = {
+/**
+ * A recipe is either one GLSL string defining `Surface surface(vec2 uv)`, or a multi-pass recipe:
+ * `fields` are separate programs each defining `vec4 field(vec2 uv)`, baked to float targets
+ * first (field i may read fields 0..i-1); `surface` then reads them all at its own pixel with
+ * F0() .. F3(). Fields are exact float32, so a split recipe matches its single-pass form. Split a recipe when it
+ * needs more than ~25 noise calls (see NOTES.md, "Compile cost").
+ */
+export type RecipeDef = string | { fields: string[]; surface: string }
+
+export const RECIPES: Record<string, RecipeDef> = {
   'rusty-mailbox': RUSTY_MAILBOX,
   'orange-peel': ORANGE_PEEL,
   'basketball': BASKETBALL,

@@ -10,7 +10,7 @@
  *   p    development progress 0..1
  *   D    visible density = p * S   (0..1, multiply by Dmax for optical density)
  *
- *   dc/dt = (m0*mottle(x,y) + m1*agitation) * cov * (c_bulk - c)  -  kc * S * dp/dt   (boundary layer)
+ *   dc/dt = (m0*mottle(x,y) + m1*sqrt(agitation)) * cov * (c_bulk - c)  -  kc * S * dp/dt   (boundary layer)
  *   dn/dt = k1 * c * act * S
  *   dp/dt = k2 * c * act * (n + n0) * (1 - p)                                   (autocatalytic)
  *   act   = max(cov, film * wet)          (a wet but uncovered sheet keeps developing off its own film)
@@ -41,7 +41,11 @@ export interface Kinetics {
   n0: number
   /** Consumption of boundary-layer developer per unit density. */
   kc: number
-  /** Still-bath exchange (1/s) and agitation exchange (1/s per m/s). */
+  /**
+   * Still-bath exchange (1/s) and agitation exchange m1*sqrt(|u|) (1/s per sqrt(m/s)). The square root is
+   * laminar boundary-layer mass transfer: any decent flow nearly saturates the exchange, so a rocked tray
+   * develops evenly and only still or starved regions lag.
+   */
   m0: number
   m1: number
   /** Spatial variation of the still-bath exchange (convection cells): 0 = uniform, 0.5 = +-50%. */
@@ -70,7 +74,7 @@ export const DEFAULT_KINETICS: Kinetics = {
   n0: 0.02,
   kc: 3,
   m0: 0.12,
-  m1: 12,
+  m1: 9,
   mottle: 0.45,
   film: 0.3,
   spentYield: 2e-3,
@@ -331,7 +335,7 @@ export class PaperChem {
         let cc = c[t]
         if (cv > 0) {
           const cb = SB[a] * w00 + SB[a + 1] * w10 + SB[b] * w01 + SB[b + 1] * w11
-          let ex = (m0 * still[t] + m1 * ag) * cv * dts
+          let ex = (m0 * still[t] + m1 * Math.sqrt(ag)) * cv * dts
           if (ex > 1) ex = 1
           cc += ex * (cb - cc)
           // a fast front sweeping dry paper can trap air

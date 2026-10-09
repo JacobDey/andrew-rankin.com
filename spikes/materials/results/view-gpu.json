@@ -1,0 +1,12 @@
+{
+ "renderer": "ANGLE (AMD, Radeon RX 580 Series (0x000067DF) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+ "result": {
+  "canvas": "1560x1080",
+  "msPerFrame": {
+   "steps0": 1.18,
+   "steps12": 1.67,
+   "steps24": 1.72,
+   "steps48": 2.27
+  }
+ }
+}

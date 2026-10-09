@@ -1,7 +1,115 @@
 // Metal recipes. Each string defines `Surface surface(vec2 uv)` in tile UV
 // (one tile = info.tileMm). Heights are millimetres. +V is "up" on the object.
 
-export const RUSTY_MAILBOX = /* glsl */ `
+// The day-1 hero, split into three small programs (two noise fields + the surface) because one
+// big program costs several seconds to compile on Windows/ANGLE (see NOTES.md, "Compile cost").
+// Output is identical to RUSTY_MAILBOX_SINGLE below: fields are stored as exact float32.
+const MAILBOX_FIELD_CORROSION = /* glsl */ `
+float scratchLine(vec2 q, vec2 n, uint salt, float widthMm) {
+  float v = gnoise(q * n, ivec2(n), salt);
+  float wpx = max(MM(widthMm) / uPx, 0.6);
+  return (1.0 - smoothstep(0.0, wpx, abs(v) / max(fwidth(v), 1e-6))) * detail(MM(widthMm) * 2.0);
+}
+// x = rust field, y = fine detail noise, z = scratches, w = chalking
+vec4 field(vec2 uv) {
+  vec2 w = uv + MM(3.0) * warpT(uv, nc(16.0), 3, 11u);
+  float rf = fbmT(w, nc(14.0), 6, 0.55, 12u);
+  float detailN = fbmT(uv, nc(1.2), 4, 0.55, 13u);
+  vec2 q1 = vec2(uv.x + uv.y, uv.y);
+  vec2 q2 = vec2(uv.x - uv.y, uv.x);
+  float segA = smoothstep(0.15, 0.35, fbmT(uv, nc(12.0), 2, 0.5, 14u));
+  float segB = smoothstep(0.2, 0.4, fbmT(uv, nc(10.0), 2, 0.5, 15u));
+  float scr = max(scratchLine(q1, vec2(3.0, 9.0), 16u, 0.12) * segA, scratchLine(q2, vec2(2.0, 8.0), 17u, 0.09) * segB);
+  float chalk = sat(0.5 + 0.9 * fbmT(uv, nc(9.0), 4, 0.55, 22u));
+  return vec4(rf, detailN, scr, chalk);
+}
+`
+const MAILBOX_FIELD_RUST = /* glsl */ `
+// x = crust, y = pits, z = oxide tone, w = magnetite flecks
+vec4 field(vec2 uv) {
+  float crust = ridgedT(uv + MM(0.7) * warpT(uv, nc(3.0), 2, 40u), nc(1.8), 5, 0.6, 41u);
+  vec4 wp = worleyT(uv, nc(0.8), 42u, 1.0);
+  float pit = smoothstep(0.38, 0.05, wp.x) * step(0.6, wp.z);
+  float tone = fbmT(uv, nc(5.0), 4, 0.55, 43u);
+  float fleck = smoothstep(0.82, 0.9, vnoiseT(uv, nc(0.25), 44u));
+  return vec4(crust, pit, tone, fleck);
+}
+`
+const MAILBOX_SURFACE = /* glsl */ `
+// Faded green enamel over red-oxide primer over rolled steel (texturedle-game.md 5).
+Surface surface(vec2 uv) {
+  vec4 c = F0(), r = F1();
+  float rf = c.x, detailN = c.y, scr = c.z, chalk = c.w;
+  float crust = r.x, pit = r.y, tone = r.z, fleck = r.w;
+  // rolled steel: mill striations along X
+  float roll = fbmT(uv, vec2(nc(40.0), nc(0.15)), 3, 0.6, 1u);
+  Surface s = surf(roll * 0.002, hex(#8D9195) * (0.9 + 0.15 * roll), 0.36 + 0.1 * roll, 1.0);
+
+  float field = rf + 0.06 * detailN + 0.10 * scr;
+  float rust = smoothstep(0.085, 0.15, field);
+  float primerMask = 1.0 - smoothstep(0.045, 0.085, field + 0.02 * detailN);
+  float paintMask = 1.0 - smoothstep(-0.005, 0.03, field + 0.04 * detailN);
+  paintMask *= 1.0 - scr * 0.95;
+  // small chips knocked out of sound paint, showing primer
+  vec4 wc = worleyT(uv, nc(1.4), 18u, 1.0);
+  float chip = (1.0 - smoothstep(0.12, 0.2, wc.x + 0.05 * detailN)) * step(0.9, wc.z);
+  paintMask *= 1.0 - chip;
+
+  // red-oxide primer
+  coat(s, primerMask, 0.025, hex(#7A3524) * (0.9 + 0.2 * detailN), 0.75, 0.0, 0.33);
+  // enamel: faded, chalky green with orange-peel waviness
+  float peel = fbmT(uv, nc(2.2), 2, 0.5, 21u);
+  vec3 green = mix(hex(#2F4A39), hex(#71876F), chalk * 0.8);
+  green *= 0.95 + 0.1 * detailN;
+  coat(s, paintMask, 0.05 + peel * 0.004, green, mix(0.32, 0.7, chalk), 0.0, 0.66);
+
+  // blisters: rust pushing the paint up near the rust fronts
+  vec4 wb = worleyT(uv, nc(2.4), 31u, 0.9);
+  float bl = sat(1.0 - wb.x / (0.35 + 0.15 * wb.z));
+  bl = bl * bl * (3.0 - 2.0 * bl);
+  float blZone = smoothstep(-0.10, 0.03, field) * (1.0 - rust) * step(0.3, wb.z);
+  s.height += bl * blZone * (0.1 + 0.2 * wb.z);
+  s.albedo *= 1.0 - 0.25 * bl * blZone * smoothstep(0.0, 0.08, field);
+
+  // rust: crusty scale with pits, an oxide family of colours
+  vec3 rc = mix(hex(#8A4F25), hex(#C46A30), sat(0.5 + tone * 1.5 + crust * 0.4));
+  rc = mix(rc, hex(#6A2A1C), smoothstep(0.1, 0.4, -tone) * 0.8);
+  rc = mix(rc, hex(#D9A066), smoothstep(0.75, 0.95, crust) * 0.35);
+  rc = mix(rc, hex(#2A2522), max(pit * 0.85, fleck * 0.6));
+  float rustH = 0.02 + 0.28 * crust * crust * smoothstep(0.1, 0.3, field) - 0.16 * pit;
+  s.height = mix(s.height, rustH, rust);
+  s.albedo = mix(s.albedo, rc, rust);
+  s.rough = mix(s.rough, 0.9 + 0.08 * crust, rust);
+  s.metal = mix(s.metal, 0.0, rust);
+  s.layer = mix(s.layer, 1.0, step(0.5, rust));
+  s.loose = rust * sat(0.3 + crust);
+
+  // white rust halo where zinc / primer meets corrosion
+  float halo = smoothstep(0.075, 0.1, field) * (1.0 - smoothstep(0.1, 0.125, field));
+  s.albedo = mix(s.albedo, hex(#A8A090), halo * 0.18 * sat(detailN + 0.5));
+
+  // rust runs: stains that run DOWN (-V) from blooms above (base octave of the rust field only)
+  float run = 0.0;
+  vec2 wr = uv + MM(3.0) * vec2(gnoiseT(uv, nc(16.0), 11u), gnoiseT(uv, nc(16.0), 11u + 7919u)) * 0.5;
+  for (int i = 1; i <= 5; i++) {
+    float o = MM(1.2 * float(i * i));
+    run = max(run, smoothstep(0.03, 0.13, 0.5 * gnoiseT(wr + vec2(0.0, o), nc(14.0), 12u)) * (1.0 - float(i) * 0.15));
+  }
+  float streaky = sat(0.55 + 1.6 * fbmT(uv, vec2(nc(0.9), nc(16.0)), 4, 0.5, 51u));
+  run *= streaky * (1.0 - rust);
+  s.albedo = mix(s.albedo, s.albedo * vec3(1.3, 0.75, 0.45) + hex(#5A2A12) * 0.25, run * 0.6);
+  s.rough = mix(s.rough, 0.8, run * 0.5);
+
+  // dust in the low spots, never on the tops
+  float dust = smoothstep(0.2, 0.7, fbmT(uv, nc(6.0), 3, 0.5, 61u));
+  s.albedo = mix(s.albedo, hex(#8A7F6E), dust * 0.12 * (1.0 - rust));
+  return s;
+}
+`
+export const RUSTY_MAILBOX = { fields: [MAILBOX_FIELD_CORROSION, MAILBOX_FIELD_RUST], surface: MAILBOX_SURFACE }
+
+/** Single-pass reference version (kept for compile-cost A/B and as a readable whole). */
+export const RUSTY_MAILBOX_SINGLE = /* glsl */ `
 // Faded green enamel over red-oxide primer over rolled steel (texturedle-game.md 5).
 float rustField(vec2 uv, int oct) {
   vec2 w = uv + MM(3.0) * warpT(uv, nc(16.0), 3, 11u);
@@ -145,23 +253,43 @@ Surface surface(vec2 uv) {
 }
 `
 
-export const GALVANIZED = /* glsl */ `
-Surface surface(vec2 uv) {
-  // zinc spangle grains 2-8 mm with dendritic feathering at a per-grain angle
+// Galvanized runs as two passes: the Voronoi spangle lattice is its own program. Besides compiling
+// faster, this sidesteps a D3D11 (ANGLE/FXC) code-generation bug measured in the single-pass
+// version: the cell-border term read a wrong value of the Voronoi edge in ~19% of texels.
+const GALV_FIELD_GRAINS = /* glsl */ `
+// x = distance to grain border, y = grain angle rnd, z = grain feather rnd, w = grain brightness
+vec4 field(vec2 uv) {
   vec2 w = uv + MM(1.2) * warpT(uv, nc(10.0), 3, 1u);
   Vor v = voronoiT(w, nc(5.0), 2u, 0.95);
-  float ang = v.rnd.x * PI;
-  vec2 d = vec2(cos(ang), sin(ang));
+  return vec4(v.edge, v.rnd.x, v.rnd.y, v.rnd.z);
+}
+`
+const GALV_FIELD_REL = /* glsl */ `
+// xy = vector from the pixel to its grain's seed point (cell units)
+vec4 field(vec2 uv) {
+  vec2 w = uv + MM(1.2) * warpT(uv, nc(10.0), 3, 1u);
+  Vor v = voronoiT(w, nc(5.0), 2u, 0.95);
+  return vec4(v.rel, 0.0, 0.0);
+}
+`
+const GALV_SURFACE = /* glsl */ `
+Surface surface(vec2 uv) {
+  // zinc spangle grains 2-8 mm with dendritic feathering at a per-grain angle
+  vec4 g = F0();
+  vec2 rel = F1().xy;
+  float edge = g.x;
+  float ang = g.y * PI;
+  vec2 d = vec2(pcos(ang), psin(ang));
   // offsets relative to the grain's own seed point keep the pattern periodic
-  vec2 pmm = -v.rel * (uTileMm / nc(5.0));
+  vec2 pmm = -rel * (uTileMm / nc(5.0));
   float along = dot(pmm, d), across = dot(pmm, vec2(-d.y, d.x));
   // feather: primary arms + secondary arms at ~60 deg
-  float fA = abs(sin(across * (6.0 + 4.0 * v.rnd.y) + 2.0 * gnoiseT(uv, nc(1.5), 3u)));
-  float fB = abs(sin((along * 0.5 + abs(across) * 0.87) * 9.0));
+  float fA = abs(psin(across * (6.0 + 4.0 * g.z) + 2.0 * gnoiseT(uv, nc(1.5), 3u)));
+  float fB = abs(psin((along * 0.5 + abs(across) * 0.87) * 9.0));
   float feather = (1.0 - fA) * 0.6 + (1.0 - fB) * 0.4 * smoothstep(0.2, 0.0, fA);
   feather *= detail(MM(0.3));
-  float bright = v.rnd.z;
-  float border = 1.0 - smoothstep(0.0, 0.05, v.edge);
+  float bright = g.w;
+  float border = 1.0 - smoothstep(0.0, 0.05, edge);
   float h = 0.004 * feather + 0.002 * fbmT(uv, nc(2.0), 3, 0.5, 4u) - 0.004 * border;
   vec3 alb = hex(#A9AEB2) * (0.86 + 0.18 * bright + 0.05 * feather);
   Surface s = surf(h + 0.006, alb, mix(0.18, 0.5, bright) + 0.1 * feather, 1.0);
@@ -179,3 +307,4 @@ Surface surface(vec2 uv) {
   return s;
 }
 `
+export const GALVANIZED = { fields: [GALV_FIELD_GRAINS, GALV_FIELD_REL], surface: GALV_SURFACE }

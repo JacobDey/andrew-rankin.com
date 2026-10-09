@@ -45,7 +45,8 @@
       padding: 8px 14px; border-radius: 6px; opacity: 0; transition: opacity .16s; pointer-events: none; font-weight: 500; }
     #toast.show { opacity: 1; }
     @media (max-width: 640px) {
-      #stats { font-size: 10px; }
+      header p { display: none; }
+      #stats { font-size: 9px; opacity: 0.85; }
       #bar button, #bar label, #bar select { padding: 8px 9px; font-size: 12px; }
       header .tape { font-size: 16px; }
     }
@@ -70,6 +71,7 @@
     <button id="bRock" title="Rock the tray for me (R)">Rock</button>
     <button id="bNudge" title="Shove the tray (J)">Nudge</button>
     <button id="bFinger" title="Finger in the liquid (F, or right-drag)">Finger</button>
+    <button id="bGyro" title="Tilt the phone to tilt the tray" hidden>Phone is the tray</button>
     <button id="bLight" title="Room light (L)">Room light</button>
     <button id="bSheet" title="Fresh sheet of the same negative">New sheet</button>
     <button id="bFill" title="Empty the tray and refill">Refill</button>

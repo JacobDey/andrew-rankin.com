@@ -700,7 +700,7 @@ function start(bake: SurfaceBake) {
       ;(surfaceMesh.material as THREE.ShaderMaterial).uniforms.uDebug.value = on ? 1 : 0
     },
     /** physics-only benchmark: drags both cloths while the marble rolls; ms per 60 Hz frame */
-    bench(frames = 120) {
+    bench(frames = 120, renders = 10) {
       const wasPaused = paused
       this.pause()
       const fine = world.cloth('fine')!
@@ -728,7 +728,7 @@ function start(bake: SurfaceBake) {
       rough.releaseGrab()
       // render cost (CPU submit; in headless this includes SwiftShader raster)
       const tr = performance.now()
-      const R = 10
+      const R = Math.max(1, renders)
       for (let i = 0; i < R; i++) {
         anyClothMoved = true
         render()

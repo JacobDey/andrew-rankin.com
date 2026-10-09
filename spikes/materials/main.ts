@@ -319,15 +319,24 @@ async function bakeZoom() {
   if (x + w < win.u0 + win.sx || y + w < win.v0 + win.sy) w *= 2
   const region: Region = { x, y, w }
   if (zoomMaps && zoomMaps.region.x === x && zoomMaps.region.y === y && zoomMaps.region.w === w && zoomMaps.size === bakeSize) return
+  // the same region is already baking: share that bake instead of restarting it
+  const key = `${inspecting}|${x}|${y}|${w}|${bakeSize}|${seed}`
+  if (pendingZoom && pendingZoom.key === key) return pendingZoom.done
   const token = ++bakeToken
   const id = inspecting
-  const maps = await gen.generate(id, { size: bakeSize, seed, region, readback: true })
-  if (token !== bakeToken || inspecting !== id) { maps.dispose(); return }
-  zoomMaps?.dispose()
-  zoomMaps = maps
-  fillFacts()
-  dirty = true
+  const done = (async () => {
+    const maps = await gen.generate(id, { size: bakeSize, seed, region, readback: true })
+    if (pendingZoom?.key === key) pendingZoom = null
+    if (token !== bakeToken || inspecting !== id) { maps.dispose(); return }
+    zoomMaps?.dispose()
+    zoomMaps = maps
+    fillFacts()
+    dirty = true
+  })()
+  pendingZoom = { key, done }
+  return done
 }
+let pendingZoom: { key: string; done: Promise<void> } | null = null
 
 // -------- input: drag = lamp, right-drag / two fingers = tilt, wheel / pinch = rack in
 const pointers = new Map<number, { x: number; y: number; button: number; shift: boolean }>()
@@ -457,6 +466,8 @@ installSpikeHooks({
   setZoom: (z: number, cu = 0.5, cv = 0.5) => { view.zoom = clamp(z, 1 / 32, 3); view.cu = cu; view.cv = cv; dirty = true; return bakeZoom() },
   setMode, setRing, frameStats, seed: () => seed, matchGuess, resolveGuess, lint: () => lint,
   current: () => ({ base: baseMaps, zoom: zoomMaps }),
+  drawFrame: () => drawInspector(),
+  setShadowSteps: (n: number) => { macroMat.uniforms.uShadowSteps.value = n },
 })
 
 if (params.get('open')) openInspector(params.get('open')!)

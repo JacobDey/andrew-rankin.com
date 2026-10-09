@@ -75,6 +75,16 @@ vec3 hashId(float id, uint salt) {
 }
 
 // ------------------------------------------------------------------ helpers
+// Portable sine for stripes and rings: GPU sin()/cos() reduce large arguments with vendor-specific
+// precision (measured: whole-texture differences between SwiftShader and D3D11 at |x| ~ 70), so
+// periodic patterns use exact fract() range reduction plus a polynomial (max error ~0.001).
+float psin(float x) {
+  float t = fract(x * 0.15915494309189535);
+  float s = t * 2.0 - 1.0;
+  float y = -4.0 * s * (1.0 - abs(s));
+  return 0.225 * (y * abs(y) - y) + y;
+}
+float pcos(float x) { return psin(x + 1.5707963267948966); }
 float sat(float x) { return clamp(x, 0.0, 1.0); }
 vec2 sat(vec2 x) { return clamp(x, 0.0, 1.0); }
 vec3 sat(vec3 x) { return clamp(x, 0.0, 1.0); }
@@ -83,7 +93,7 @@ float lstep(float a, float b, float x) { return sat((x - a) / (b - a)); }
 float smin(float a, float b, float k) { float h = sat(0.5 + 0.5 * (b - a) / k); return mix(b, a, h) - k * h * (1.0 - h); }
 float smax(float a, float b, float k) { return -smin(-a, -b, k); }
 float luma(vec3 c) { return dot(c, vec3(0.2126, 0.7152, 0.0722)); }
-vec2 rot2(vec2 p, float a) { float c = cos(a), s = sin(a); return vec2(c * p.x - s * p.y, s * p.x + c * p.y); }
+vec2 rot2(vec2 p, float a) { float c = pcos(a), s = psin(a); return vec2(c * p.x - s * p.y, s * p.x + c * p.y); }
 // millimetres <-> tile UV, and "how many cells of this feature size fit in a tile"
 float MM(float mm) { return mm / uTileMm; }
 float nc(float featureMm) { return max(1.0, floor(uTileMm / featureMm + 0.5)); }
@@ -230,7 +240,8 @@ Vor voronoi(vec2 p, ivec2 per, uint salt, float jitter) {
       uint h = latticeHash(wrapI(n.x + g.x, per.x), yy, k);
       vec2 r = vec2(g) + featureOf(h, jitter) - f;
       vec2 dr = r - mr;
-      if (dot(dr, dr) > 1e-6) ed = min(ed, dot(0.5 * (mr + r), normalize(dr)));
+      // skip the nearest cell itself by index (exact), not by |dr| ~ 0 (fragile under FMA / codegen)
+      if (i != 0 || j != 0) ed = min(ed, dot(0.5 * (mr + r), dr * inversesqrt(max(dot(dr, dr), 1e-12))));
     }
   }
   Vor v; v.f1 = sqrt(d1); v.f2 = sqrt(d2); v.edge = ed; v.rel = mr; v.id = u2f(hnext(best, 0x63D83595u));
@@ -240,22 +251,33 @@ Vor voronoi(vec2 p, ivec2 per, uint salt, float jitter) {
 
 // ------------------------------------------------------------------ fractals
 // pxl = lattice units per output pixel at octave 0 (for band limiting)
+#ifndef EXTRA_OCT
+#define EXTRA_OCT 0
+#endif
+// Zoom detail: programs compiled with EXTRA_OCT > 0 (the generator's "zoom" variant) keep adding
+// octaves past \`oct\` while they are still resolvable at this pixel size, so racking in reveals
+// finer structure instead of smooth blobs. The first \`oct\` octaves and their normalization are
+// untouched, so large-scale structure is identical in both variants. Extra ridged/billow octaves
+// are re-centred so they add texture, not a height offset.
 float octFade(float pxl) { return 1.0 - smoothstep(0.3, 0.65, pxl); }
 float fbm(vec2 p, ivec2 per, float pxl, int oct, float gain, uint salt) {
   float s = 0.0, a = 1.0, norm = 0.0;
   for (int i = 0; i < 12; i++) {
-    if (i >= oct) break;   // constant bound + break: unrolled, ~2x faster to run than a dynamic bound
+    if (i >= oct + EXTRA_OCT) break;   // constant at every call site: unrolled. (A data-dependent break here
+    // crashed the D3D11 driver for one recipe; extra octaves are faded by octFade instead.)
     s += a * gnoise(p, per, salt + uint(i) * 1013u) * octFade(pxl);
-    norm += a; p *= 2.0; per *= 2; pxl *= 2.0; a *= gain;
+    if (i < oct) norm += a;
+    p *= 2.0; per *= 2; pxl *= 2.0; a *= gain;
   }
   return s / norm;
 }
 float sfbm(vec2 p, ivec2 per, float pxl, int oct, float gain, uint salt) {
   float s = 0.0, a = 1.0, norm = 0.0;
   for (int i = 0; i < 12; i++) {
-    if (i >= oct) break;   // constant bound + break: unrolled, ~2x faster to run than a dynamic bound
+    if (i >= oct + EXTRA_OCT) break;
     s += a * snoise(p, per, salt + uint(i) * 1013u) * octFade(pxl);
-    norm += a; p *= 2.0; per *= 2; pxl *= 2.0; a *= gain;
+    if (i < oct) norm += a;
+    p *= 2.0; per *= 2; pxl *= 2.0; a *= gain;
   }
   return s / norm;
 }
@@ -263,10 +285,11 @@ float sfbm(vec2 p, ivec2 per, float pxl, int oct, float gain, uint salt) {
 float ridged(vec2 p, ivec2 per, float pxl, int oct, float gain, uint salt) {
   float s = 0.0, a = 1.0, norm = 0.0;
   for (int i = 0; i < 12; i++) {
-    if (i >= oct) break;   // constant bound + break: unrolled, ~2x faster to run than a dynamic bound
+    if (i >= oct + EXTRA_OCT) break;
     float n = 1.0 - abs(gnoise(p, per, salt + uint(i) * 1013u));
-    s += a * n * n * octFade(pxl);
-    norm += a; p *= 2.0; per *= 2; pxl *= 2.0; a *= gain;
+    s += a * (i < oct ? n * n : n * n - 0.45) * octFade(pxl);
+    if (i < oct) norm += a;
+    p *= 2.0; per *= 2; pxl *= 2.0; a *= gain;
   }
   return s / norm;
 }
@@ -274,9 +297,11 @@ float ridged(vec2 p, ivec2 per, float pxl, int oct, float gain, uint salt) {
 float billow(vec2 p, ivec2 per, float pxl, int oct, float gain, uint salt) {
   float s = 0.0, a = 1.0, norm = 0.0;
   for (int i = 0; i < 12; i++) {
-    if (i >= oct) break;   // constant bound + break: unrolled, ~2x faster to run than a dynamic bound
-    s += a * abs(gnoise(p, per, salt + uint(i) * 1013u)) * octFade(pxl);
-    norm += a; p *= 2.0; per *= 2; pxl *= 2.0; a *= gain;
+    if (i >= oct + EXTRA_OCT) break;
+    float n = abs(gnoise(p, per, salt + uint(i) * 1013u));
+    s += a * (i < oct ? n : n - 0.35) * octFade(pxl);
+    if (i < oct) norm += a;
+    p *= 2.0; per *= 2; pxl *= 2.0; a *= gain;
   }
   return s / norm;
 }

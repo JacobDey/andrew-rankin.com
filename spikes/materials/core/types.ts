@@ -101,6 +101,12 @@ export interface GenerateOptions {
   readbackAlbedo?: boolean
   /** block until the GPU has finished (benchmarks only). Default false. */
   finish?: boolean
+  /**
+   * 'zoom' compiles a variant with up to 4 extra fractal octaves that appear only where they are
+   * resolvable, so racked-in region bakes show finer structure. 'auto' (default) uses it when
+   * region.w < 1. Large-scale structure is identical either way.
+   */
+  detail?: 'auto' | 'base' | 'zoom'
   /** build mip chains on the output textures. Default true. */
   mipmaps?: boolean
   /** anisotropic filtering level applied to output textures. Default 4. */

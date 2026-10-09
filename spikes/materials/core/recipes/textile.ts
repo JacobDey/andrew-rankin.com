@@ -21,10 +21,10 @@ Surface surface(vec2 uv) {
     float t = (float(phase) + f.y) / 3.0;
     float across = (f.x - 0.5) / (0.47 + 0.04 * slubW);
     float prof = sqrt(sat(1.0 - across * across));
-    h = 0.11 + 0.12 * prof * (0.6 + 0.4 * sin(PI * t));
+    h = 0.11 + 0.12 * prof * (0.6 + 0.4 * psin(PI * t));
     vec3 indigo = mix(hex(#15274B), hex(#2B4A82), sat(0.5 + slubW));
     alb = mix(indigo, hex(#7488AE), fade * 0.5 * prof * prof);
-    float tw = sin(TAU * (q.y * 2.5 + f.x * 1.3) + 3.0 * slubW);   // 2.5 * N cycles per tile: N % 4 == 0 keeps it whole
+    float tw = psin(TAU * (q.y * 2.5 + f.x * 1.3) + 3.0 * slubW);   // 2.5 * N cycles per tile: N % 4 == 0 keeps it whole
     alb *= (0.84 + 0.16 * tw) * (0.7 + 0.3 * prof);
     h += 0.008 * tw;
   } else {
@@ -33,7 +33,7 @@ Surface surface(vec2 uv) {
     float prof = sqrt(sat(1.0 - across * across));
     h = 0.06 + 0.07 * prof;
     alb = mix(hex(#8E8E90), hex(#B9B6AE), sat(0.5 + slubF)) * (0.55 + 0.45 * prof);
-    float tw = sin(TAU * (q.x * 2.5 - f.y * 1.3));
+    float tw = psin(TAU * (q.x * 2.5 - f.y * 1.3));
     alb *= 0.9 + 0.1 * tw;
     // blue fibres from the neighbouring warp spill over it
     alb = mix(alb, hex(#2B4A82), 0.35 * smoothstep(0.25, 0.5, abs(f.x - 0.5)));
@@ -78,7 +78,7 @@ Surface surface(vec2 uv) {
   }
   float prof = sqrt(sat(1.0 - best));
   // plied yarn: twist stripes running diagonally across each leg
-  float tw = sin(bestLocal.y * 6.0 + bestLocal.x * 5.0 * side);
+  float tw = psin(bestLocal.y * 6.0 + bestLocal.x * 5.0 * side);
   float fuzz = fbmT(uv, nc(0.3), 3, 0.6, 5u);
   float halo = fbmT(uv, nc(0.1), 2, 0.6, 6u) * detail(MM(0.1));
   float h = 1.9 * prof + 0.07 * tw * prof + 0.05 * fuzz + 0.03 * halo;
@@ -111,7 +111,7 @@ Surface surface(vec2 uv) {
   float clump = fbmT(uv, vec2(nc(0.4), nc(1.6)), 3, 0.55, 4u);
   float crush = smoothstep(0.15, 0.5, fbmT(uv, nc(9.0), 4, 0.55, 5u));
   float gutter = 1.0 - smoothstep(0.44, 0.5, abs(fx - 0.5));
-  float base = sin(TAU * uv.y * nc(0.3)) * sin(TAU * fx * 4.0) * 0.5 + 0.5;
+  float base = psin(TAU * uv.y * nc(0.3)) * psin(TAU * fx * 4.0) * 0.5 + 0.5;
   float fuzz = (tips - 0.5) * 0.05 + (tips2 - 0.5) * 0.03 * detail(MM(0.05));
   float hPile = 0.2 + 0.42 * ridge + fuzz + 0.03 * clump + 0.015 * nap - 0.06 * crush * ridge;
   float h = mix(0.08 + 0.02 * base, hPile, gutter);
@@ -147,7 +147,7 @@ Surface surface(vec2 uv) {
     // over/under: plain weave alternates every pick
     float j = floor(q.y);
     float over = mod(float(ii) + j, 2.0) < 0.5 ? 1.0 : -1.0; // N is even, so parity tiles
-    float undul = over * cos(PI * (fract(q.y) - 0.5)) * 0.5;
+    float undul = over * pcos(PI * (fract(q.y) - 0.5)) * 0.5;
     float hh = yh > 0.0 ? 0.55 + 0.45 * yh + 0.35 * undul : -1.0;
     if (hh > hW) { hW = hh; aW = d / thick; idW = float(ii); }
   }
@@ -161,7 +161,7 @@ Surface surface(vec2 uv) {
     float yh = yarnH(d, thick);
     float i = floor(q.x);
     float over = mod(i + float(jj), 2.0) < 0.5 ? -1.0 : 1.0;
-    float undul = over * cos(PI * (fract(q.x) - 0.5)) * 0.5;
+    float undul = over * pcos(PI * (fract(q.x) - 0.5)) * 0.5;
     float hh = yh > 0.0 ? 0.55 + 0.45 * yh + 0.35 * undul : -1.0;
     if (hh > hF) { hF = hh; aF = d / thick; idF = float(jj); }
   }
@@ -170,7 +170,7 @@ Surface surface(vec2 uv) {
   float a = isW ? aW : aF;
   vec2 alongV = isW ? vec2(0.0, 1.0) : vec2(1.0, 0.0);
   float along = dot(q, alongV);
-  float tw = sin(TAU * (along * 3.5 + a * 0.9));   // N even => whole cycles per tile
+  float tw = psin(TAU * (along * 3.5 + a * 0.9));   // N even => whole cycles per tile
   float fib = fbm(vec2(along * 6.0, a * 2.0 + (isW ? idW : idF) * 7.0), ivec2(int(N) * 6, 0), uPx * N * 6.0, 3, 0.6, 8u);
   float hairs = isoLine(gnoiseT(uv, nc(1.4), 9u), 0.03) * smoothstep(0.1, 0.5, fbmT(uv, nc(3.0), 2, 0.5, 10u));
   vec3 jute = mix(hex(#9C7D4E), hex(#C2A574), sat(0.5 + fib));

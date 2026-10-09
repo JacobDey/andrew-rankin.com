@@ -1,0 +1,12 @@
+{
+ "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+ "result": {
+  "canvas": "920x800",
+  "msPerFrame": {
+   "steps0": 105.21,
+   "steps12": 233.93,
+   "steps24": 328.1,
+   "steps48": 550.96
+  }
+ }
+}

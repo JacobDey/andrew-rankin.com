@@ -1,19 +1,39 @@
 // Bark, cork, leather, moss and leaf.
 
-export const OAK_BARK = /* glsl */ `
-// Long vertical ridges of corky bark between deep furrows, broken by cross-cracks; lichen.
-Surface surface(vec2 uv) {
+const OAK_FIELD_WARP = /* glsl */ `
+// xy = warped coordinate shared by every later pass
+vec4 field(vec2 uv) {
   vec2 w = uv + MM(5.0) * warpT(uv, nc(40.0), 3, 1u);
   w += vec2(MM(3.0) * fbmT(uv, vec2(nc(30.0), nc(80.0)), 3, 0.5, 2u), 0.0);
+  return vec4(w, 0.0, 0.0);
+}
+`
+const OAK_FIELD_PLATES = /* glsl */ `
+// x = distance to a furrow (mm), y = furrow edge noise
+vec4 field(vec2 uv) {
+  vec2 w = F0().xy;
   vec2 nP = vec2(nc(11.0), nc(45.0));
   Vor pl = voronoiT(w, nP, 3u, 0.85);
-  float cellW = uTileMm / nP.x;
-  float eMm = pl.edge * cellW;
-  float furrow = 1.0 - smoothstep(0.5, 3.0, eMm + 0.8 * fbmT(uv, nc(4.0), 3, 0.5, 4u));
-  float ridgeV = ridgedT(w, vec2(nc(9.0), nc(90.0)), 4, 0.55, 5u);
+  return vec4(pl.edge * uTileMm / nP.x, fbmT(uv, nc(4.0), 3, 0.5, 4u), 0.0, 0.0);
+}
+`
+const OAK_FIELD_RELIEF = /* glsl */ `
+// x = vertical ridging, y = bumps, z = raw fissure field
+vec4 field(vec2 uv) {
+  vec2 w = F0().xy;
+  return vec4(ridgedT(w, vec2(nc(9.0), nc(90.0)), 4, 0.55, 5u), fbmT(w, vec2(nc(3.0), nc(8.0)), 5, 0.55, 6u),
+              fbmT(w, vec2(nc(5.0), nc(25.0)), 3, 0.5, 7u), 0.0);
+}
+`
+const OAK_SURFACE = /* glsl */ `
+// Long vertical ridges of corky bark between deep furrows, broken by cross-cracks; lichen.
+Surface surface(vec2 uv) {
+  vec4 P = F1(), Q = F2();
+  float eMm = P.x;
+  float furrow = 1.0 - smoothstep(0.5, 3.0, eMm + 0.8 * P.y);
+  float ridgeV = Q.x, bumps = Q.y;
   float plateTop = sat(eMm / 4.0);
-  float bumps = fbmT(w, vec2(nc(3.0), nc(8.0)), 5, 0.55, 6u);
-  float fiss = isoLine(fbmT(w, vec2(nc(5.0), nc(25.0)), 3, 0.5, 7u), 0.25) * plateTop;
+  float fiss = isoLine(Q.z, 0.25) * plateTop;
   float h = 7.0 * (1.0 - furrow) * (0.6 + 0.4 * sqrt(plateTop)) + 1.5 * ridgeV + 0.8 * bumps - 0.6 * fiss;
   vec3 grey = mix(hex(#6E655B), hex(#A39B90), sat(0.5 + bumps * 1.2));
   vec3 alb = mix(grey, hex(#4A3B2E), furrow);
@@ -30,24 +50,27 @@ Surface surface(vec2 uv) {
   return s;
 }
 `
+export const OAK_BARK = { fields: [OAK_FIELD_WARP, OAK_FIELD_PLATES, OAK_FIELD_RELIEF], surface: OAK_SURFACE }
 
-export const BIRCH_BARK = /* glsl */ `
-// Chalky white betulin, dark horizontal lenticels, papery strips curling up to show tan inner bark.
-Surface surface(vec2 uv) {
+const BIRCH_FIELD = /* glsl */ `
+// x = striation, y = lenticels, z = peeling-band field
+vec4 field(vec2 uv) {
   vec2 w = uv + MM(1.5) * warpT(uv, nc(20.0), 3, 1u);
   float stri = fbmT(w, vec2(nc(40.0), nc(0.25)), 4, 0.6, 2u);
   // lenticels: horizontal dashes 2-12 mm long, ~0.8 mm tall
-  vec2 nL = vec2(nc(9.0), nc(3.0));
-  vec4 lw = worleyT(w * vec2(1.0, 1.0), nL, 3u, 0.9);
-  vec2 cellL = vec2(uTileMm) / nL;
-  float lenK = 0.35 + 0.6 * lw.z;
-  float lent = 1.0 - smoothstep(0.0, 0.08, lw.x * 0.7 - 0.06 * lenK);
-  // stretch the dash: re-evaluate with anisotropic distance
+  vec4 lw = worleyT(w, vec2(nc(9.0), nc(3.0)), 3u, 0.9);
+  float lent = 1.0 - smoothstep(0.0, 0.08, lw.x * 0.7 - 0.06 * (0.35 + 0.6 * lw.z));
   vec4 lw2 = worleyT(w, vec2(nc(14.0), nc(2.2)), 4u, 0.8);
   float dash = (1.0 - smoothstep(0.12, 0.2, lw2.x)) * step(0.45, lw2.z);
-  float lenticel = max(lent * step(0.6, lw.z), dash);
-  // peeling strips: horizontal bands where the outer layer lifts and curls
   float band = fbmT(w, vec2(nc(60.0), nc(4.0)), 3, 0.5, 5u);
+  return vec4(stri, max(lent * step(0.6, lw.z), dash), band, 0.0);
+}
+`
+const BIRCH_SURFACE = /* glsl */ `
+// Chalky white betulin, dark horizontal lenticels, papery strips curling up to show tan inner bark.
+Surface surface(vec2 uv) {
+  vec4 B = F0();
+  float stri = B.x, lenticel = B.y, band = B.z;
   float peel = smoothstep(0.22, 0.3, band);
   float edge = smoothstep(0.14, 0.22, band) * (1.0 - peel);
   float lift = smoothstep(0.3, 0.45, band);
@@ -68,16 +91,23 @@ Surface surface(vec2 uv) {
   return s;
 }
 `
+export const BIRCH_BARK = { fields: [BIRCH_FIELD], surface: BIRCH_SURFACE }
 
-export const CORK = /* glsl */ `
+const CORK_GRANULES = (n: string, off: string, salt: string) => /* glsl */ `
+// x = distance to granule border, yzw = granule randoms
+vec4 field(vec2 uv) {
+  vec2 w = uv + MM(0.35) * warpT(uv, nc(2.0), 2, 1u);
+  Vor a = voronoiT(w + ${off}, nc(${n}), ${salt}, 1.0);
+  return vec4(a.edge, a.rnd);
+}
+`
+const CORK_SURFACE = /* glsl */ `
 // Agglomerated cork granules: tan to brown, honeycomb cells inside, a few old pinholes.
 Surface surface(vec2 uv) {
-  vec2 w = uv + MM(0.35) * warpT(uv, nc(2.0), 2, 1u);
-  Vor a = voronoiT(w, nc(1.6), 2u, 1.0);
-  Vor b = voronoiT(w + 0.4, nc(0.8), 3u, 1.0);
-  bool useB = b.rnd.x > 0.5 && b.edge > 0.06;
-  vec3 rnd = useB ? b.rnd : a.rnd;
-  float edge = useB ? b.edge : a.edge;
+  vec4 A = F0(), B = F1();
+  bool useB = B.y > 0.5 && B.x > 0.06;
+  vec3 rnd = useB ? B.yzw : A.yzw;
+  float edge = useB ? B.x : A.x;
   float gapN = vnoiseT(uv, nc(0.5), 7u);
   float gap = (1.0 - smoothstep(0.0, 0.035, edge)) * smoothstep(0.35, 0.6, gapN);
   vec4 cc = worleyT(uv, nc(0.12), 4u, 1.0);
@@ -97,14 +127,22 @@ Surface surface(vec2 uv) {
   return s;
 }
 `
+export const CORK = { fields: [CORK_GRANULES('1.6', '0.0', '2u'), CORK_GRANULES('0.8', '0.4', '3u')], surface: CORK_SURFACE }
 
-export const LEATHER = /* glsl */ `
-// Pebble-grain cowhide, creased by years in a pocket, with a saddle-stitched edge.
-Surface surface(vec2 uv) {
+const LEATHER_FIELD = /* glsl */ `
+// x = distance to pebble border, y = distance to pebble centre
+vec4 field(vec2 uv) {
   vec2 w = uv + MM(0.3) * warpT(uv, nc(2.0), 3, 1u);
   Vor p = voronoiT(w, nc(1.0), 2u, 0.95);
-  float pebble = smoothstep(0.0, 0.18, p.edge);
-  float tops = dome(p.f1, 0.7);
+  return vec4(p.edge, p.f1, 0.0, 0.0);
+}
+`
+const LEATHER_SURFACE = /* glsl */ `
+// Pebble-grain cowhide, creased by years in a pocket, with a saddle-stitched edge.
+Surface surface(vec2 uv) {
+  vec4 P = F0();
+  float pebble = smoothstep(0.0, 0.18, P.x);
+  float tops = dome(P.y, 0.7);
   float crease = isoLine(fbmT(uv, nc(7.0), 4, 0.55, 3u), 0.25) * smoothstep(0.0, 0.35, fbmT(uv, nc(12.0), 2, 0.5, 4u));
   float fold = ridgedT(uv, nc(14.0), 3, 0.5, 5u);
   float h = 0.15 + 0.07 * pebble + 0.03 * tops + 0.08 * fold - 0.06 * crease;
@@ -126,7 +164,7 @@ Surface surface(vec2 uv) {
   vec2 sp = vec2(sx - lineX, (sy - 0.5) * pitch);
   vec2 sr = rot2(sp, 0.55);
   float st = 1.0 - smoothstep(0.8, 1.0, length(sr / vec2(0.42, pitch * 0.5)));
-  float thread = 0.65 + 0.35 * sin(sr.y * 10.0 + sr.x * 4.0);
+  float thread = 0.65 + 0.35 * psin(sr.y * 10.0 + sr.x * 4.0);
   h += 0.12 * st * sqrt(sat(1.0 - pow(length(sr / vec2(0.42, pitch * 0.5)), 2.0)));
   alb = mix(alb * (1.0 - 0.3 * band), hex(#D8C9A6) * thread, st);
   rough = mix(rough, 0.7, st);
@@ -135,31 +173,41 @@ Surface surface(vec2 uv) {
   return s;
 }
 `
+export const LEATHER = { fields: [LEATHER_FIELD], surface: LEATHER_SURFACE }
 
-export const MOSS_STONE = /* glsl */ `
-// Grey granular stone carrying cushions of moss; lichen crusts on the bare rock.
-Surface surface(vec2 uv) {
-  vec2 w = uv + MM(4.0) * warpT(uv, nc(30.0), 3, 1u);
-  float rockN = fbmT(uv, nc(12.0), 5, 0.55, 2u);
-  vec4 rg = worleyT(uv, nc(0.8), 3u, 1.0);
-  float rock = 0.6 + 0.6 * rockN + 0.1 * dome(rg.x, 0.6);
-  vec3 rockC = mix(hex(#6C6862), hex(#9A958D), sat(0.5 + rockN)) * (0.9 + 0.15 * rg.z);
-  float lich = smoothstep(0.35, 0.5, fbmT(uv, nc(6.0), 4, 0.6, 4u));
-  rockC = mix(rockC, mix(hex(#A9AC8E), hex(#C8B860), step(0.7, vnoiseT(uv, nc(3.0), 5u))), lich * 0.75);
-  // moss cushions: a soft dome where the mask is high
-  float mm = fbmT(w, nc(22.0), 5, 0.55, 6u);
-  float mask = smoothstep(-0.05, 0.2, mm);
-  float cushion = smoothstep(-0.05, 0.45, mm);
-  // leaflets: tiny pointed leaves in rosettes
+const MOSS_FIELD_LEAVES = /* glsl */ `
+// x = leaflet relief, y = leaflet shade
+vec4 field(vec2 uv) {
   Vor lf = voronoiT(uv, nc(0.42), 7u, 1.0);
-  vec2 d = rot2(lf.rel, lf.rnd.x * TAU);
-  float leaf = dome(length(d / vec2(0.28, 0.5)), 1.0);
+  float leaf = dome(length(rot2(lf.rel, lf.rnd.x * TAU) / vec2(0.28, 0.5)), 1.0);
   Vor lf2 = voronoiT(uv + 0.3, nc(0.26), 8u, 1.0);
   float leaf2 = dome(length(rot2(lf2.rel, lf2.rnd.x * TAU) / vec2(0.3, 0.55)), 1.0);
-  float leaves = max(leaf, leaf2 * 0.8) * detail(MM(0.15));
+  return vec4(max(leaf, leaf2 * 0.8) * detail(MM(0.15)), lf.rnd.y, 0.0, 0.0);
+}
+`
+const MOSS_FIELD_ROCK = /* glsl */ `
+// x = moss cushion field, y = rock noise, z = rock grain distance, w = grain shade
+vec4 field(vec2 uv) {
+  vec2 w = uv + MM(4.0) * warpT(uv, nc(30.0), 3, 1u);
+  vec4 rg = worleyT(uv, nc(0.8), 3u, 1.0);
+  return vec4(fbmT(w, nc(22.0), 5, 0.55, 6u), fbmT(uv, nc(12.0), 5, 0.55, 2u), rg.x, rg.z);
+}
+`
+const MOSS_SURFACE = /* glsl */ `
+// Grey granular stone carrying cushions of moss; lichen crusts on the bare rock.
+Surface surface(vec2 uv) {
+  vec4 L = F0(), K = F1();
+  float leaves = L.x;
+  float mm = K.x, rockN = K.y;
+  float rock = 0.6 + 0.6 * rockN + 0.1 * dome(K.z, 0.6);
+  vec3 rockC = mix(hex(#6C6862), hex(#9A958D), sat(0.5 + rockN)) * (0.9 + 0.15 * K.w);
+  float lich = smoothstep(0.35, 0.5, fbmT(uv, nc(6.0), 4, 0.6, 4u));
+  rockC = mix(rockC, mix(hex(#A9AC8E), hex(#C8B860), step(0.7, vnoiseT(uv, nc(3.0), 5u))), lich * 0.75);
+  float mask = smoothstep(-0.05, 0.2, mm);
+  float cushion = smoothstep(-0.05, 0.45, mm);
   float hm = rock * 0.3 + 3.2 * cushion + 0.35 * leaves;
   float h = mix(rock, max(rock, hm), mask);
-  vec3 green = mix(hex(#3E5A1A), hex(#7E9C2C), sat(leaves * 0.8 + 0.3 * lf.rnd.y));
+  vec3 green = mix(hex(#3E5A1A), hex(#7E9C2C), sat(leaves * 0.8 + 0.3 * L.y));
   green = mix(green, hex(#A9B848), smoothstep(0.75, 1.0, leaves) * cushion * 0.5);
   green = mix(green, hex(#6B5A2A), smoothstep(0.6, 0.9, fbmT(uv, nc(8.0), 3, 0.5, 9u)) * 0.5);
   green *= 0.45 + 0.55 * sat(leaves + 0.25);
@@ -170,6 +218,7 @@ Surface surface(vec2 uv) {
   return s;
 }
 `
+export const MOSS_STONE = { fields: [MOSS_FIELD_LEAVES, MOSS_FIELD_ROCK], surface: MOSS_SURFACE }
 
 export const LEAF = /* glsl */ `
 // Upper surface of a broad leaf: sunken pale veins in a hierarchy, puffy areoles, waxy cuticle.
@@ -177,7 +226,7 @@ Surface surface(vec2 uv) {
   // secondary veins: diagonal, gently curved (sheared coordinate keeps them periodic)
   vec2 w = uv + MM(0.8) * warpT(uv, nc(10.0), 3, 1u);
   float ns = nc(9.0);
-  float sec = (w.x + w.y) * ns + 0.25 * sin(TAU * w.y);
+  float sec = (w.x + w.y) * ns + 0.25 * psin(TAU * w.y);
   float secD = abs(fract(sec) - 0.5) / ns * uTileMm;        // mm to the nearest secondary vein
   float secV = 1.0 - smoothstep(0.12, 0.3, secD);
   // midrib along V

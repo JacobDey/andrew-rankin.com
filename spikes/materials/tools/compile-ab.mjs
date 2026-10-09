@@ -26,7 +26,17 @@ const variants = all('variant').map((v) => {
   if (!m) throw new Error(`no TOOLKIT_GLSL in ${file}`)
   return { name, toolkit: m[1] }
 })
-if (!variants.length) variants.push({ name: 'current', toolkit: null })
+// --recipe name=path/to/file.ts:EXPORT_NAME  probes a single-pass recipe string exported from a
+// file in place of the registered recipe (e.g. RUSTY_MAILBOX_SINGLE vs the split RUSTY_MAILBOX)
+for (const v of all('recipe')) {
+  const [name, rest] = v.split('=')
+  const [file, exp] = rest.split(/:(?=[A-Z_]+$)/)
+  const src = readFileSync(file, 'utf8')
+  const m = src.match(new RegExp(`export const ${exp} = /\\* glsl \\*/ \`([\\s\\S]*?)\``))
+  if (!m) throw new Error(`no ${exp} in ${file}`)
+  variants.push({ name, toolkit: null, recipe: m[1] })
+}
+if (!variants.length || all('recipe').length) variants.unshift({ name: 'current', toolkit: null })
 
 const browser = await chromium.launch({ args: gpu ? ['--ignore-gpu-blocklist', '--enable-gpu'] : ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] })
 const page = await browser.newPage()
@@ -76,10 +86,10 @@ const rows = {}
 for (let r = 0; r < reps; r++) {
   for (const id of ids) {
     for (const v of variants) {
-      const res = await page.evaluate(([id, tk, tag, size]) => {
-        const src = window.__spike.surfaceSource(id, tk ?? undefined) + `\n// ${tag}`
-        return window.__spike.compileProbe(src, size)
-      }, [id, v.toolkit, `${v.name}-${r}-${Math.random()}`, size])
+      const res = await page.evaluate(([id, tk, rc, tag, size]) => {
+        const srcs = window.__spike.passSources(id, tk ?? undefined, rc ?? undefined).map((p) => p + String.fromCharCode(10) + '// ' + tag)
+        return window.__spike.compileProbe(srcs, size)
+      }, [id, v.toolkit, v.recipe ?? null, `${v.name}-${r}-${Math.random()}`, size])
       if (!res.ok) console.log(`${id}/${v.name} FAILED: ${res.log}`)
       const key = `${id}|${v.name}`
       ;(rows[key] ||= { id, variant: v.name, ms: [], translated: res.translatedChars, frag: res.fragChars }).ms.push(res.totalMs)

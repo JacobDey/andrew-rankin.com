@@ -161,7 +161,7 @@ export const CATALOG: readonly MaterialInfo[] = [
     difficulty: 3, family: 'stone-ceramic', habitat: 'kitchen', hardness: 5, grain: 1, wear: 1,
     tileMm: 40, reliefMm: 0.03,
     physics: P(0.3, 0.2, 0.85, 0.01, null, 0, 'stone'),
-    label: 'Granite is a frozen crystal mix: pink or white feldspar, glassy grey quartz and flakes of black mica.',
+    label: 'Granite is a frozen crystal mix: milky feldspar, glassy grey quartz and flakes of black mica. Salt-and-pepper, a stonemason would say.',
   },
   {
     id: 'marble-slab', name: 'Marble slab',
@@ -301,6 +301,16 @@ export function getMaterialInfo(id: MaterialId): MaterialInfo {
   const m = BY_ID.get(id)
   if (!m) throw new Error(`Unknown material "${id}"`)
   return m
+}
+
+/** Add or replace catalog metadata at runtime (use registerMaterial() to add a recipe too). */
+export function registerMaterialInfo(info: MaterialInfo): void {
+  BY_ID.set(info.id, info)
+}
+
+/** Every known material, including ones registered at runtime. */
+export function allMaterials(): MaterialInfo[] {
+  return [...BY_ID.values()]
 }
 
 export const MATERIAL_IDS: readonly string[] = CATALOG.map((m) => m.id)

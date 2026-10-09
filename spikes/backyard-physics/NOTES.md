@@ -10,6 +10,12 @@ replays are deterministic, even with cloth, droplets and wind feeding forces int
 
 ![hero](../../shots/spike-backyard-physics.png)
 
+More screenshots in `shots/`: `spike-bp-orbit.png` (whole yard), `spike-bp-domino-mid.png`,
+`spike-bp-swing.png`, `spike-bp-camera-snap.png` (finder and polaroid),
+`spike-bp-rainbow2.png`, `spike-bp-t0640.png`, `spike-bp-t1906.png`, `spike-bp-t2036.png`
+(dawn, golden hour, night), `spike-bp-mobile-stick.png`, `spike-bp-mobile-night.png`, and
+`spike-bp-cloth-ball-*.png` (Verlet and Rapier cloth catching the ball).
+
 ## What's in the yard
 
 | Toy | How it's built |
@@ -118,8 +124,10 @@ about 430 KB gzip but needs a change to `vite.config.ts`, which is a team decisi
 
 ## Measured performance
 
-Machine: Ryzen 5 5600G (6 cores / 12 threads), Radeon RX 580, Chromium (Playwright), shared
-with other agents, so expect ±30% noise. "Phone proxy" means CDP 4× CPU throttling at a
+Machine: Ryzen 5 5600G (6 cores / 12 threads), Radeon RX 580, Chromium (Playwright). The
+machine was shared with other agents. The figures below were taken at moderate load; at 90%
+CPU load (8 parallel headless browsers) step times spiked 10–50×, so re-measure on a quiet
+machine before tuning budgets. "Phone proxy" means CDP 4× CPU throttling at a
 390×844 viewport with DPR 3 (the canvas is capped at 1.5×). Only the CPU side is
 representative there, because the GPU is still the RX 580.
 
@@ -231,8 +239,13 @@ It's implemented here: `props/misc.ts` provides `createBoxCamera`, and `main.ts`
   band its own substep window.
 - **Tripod**: attach the camera with a `JointData.fixed` to a dynamic tripod body (so a bump
   shows in the photo), or to a kinematic one.
-- **Photo out**: `readRenderTargetPixels` from a 512² target takes about 2–4 ms. Store linear
-  data for `photochem` instead of sRGB if development has to stay physical.
+- **Photo out**: `snap()` (render a 512² MSAA target, `readRenderTargetPixels`, flip and
+  vignette in JS, JPEG `toDataURL`) takes 16–22 ms on the RX 580. **The first call took about
+  1 s** while the render-target shader variants compiled (a render target skips tone mapping
+  and the output transform, so every material needs a new program). `main.ts` now pre-warms
+  with `setRenderTarget(photoRT); compileAsync(scene, lensCam)` 400 ms after the first frame,
+  which brings the first snap down to about 100 ms. Store linear data for `photochem`
+  instead of sRGB if development has to stay physical.
 
 ## Reusing the backyard in lensbench and studio
 

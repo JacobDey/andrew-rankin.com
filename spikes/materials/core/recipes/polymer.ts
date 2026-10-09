@@ -48,21 +48,30 @@ Surface surface(vec2 uv) {
 }
 `
 
-export const PEELING_PAINT = /* glsl */ `
+const PEEL_FIELD_FLAKES = /* glsl */ `
+// x = distance to a flake edge (mm), y = flake's adhesion random
+vec4 field(vec2 uv) {
+  vec2 w = uv + MM(2.0) * warpT(uv, nc(15.0), 3, 1u);
+  Vor f = voronoiT(w, nc(4.5), 5u, 0.9);
+  return vec4(f.edge * uTileMm / nc(4.5), f.rnd.x, 0.0, 0.0);
+}
+`
+const PEEL_FIELD_DAMAGE = /* glsl */ `
+// x = craquelure, y = damage, z = old-coat damage
+vec4 field(vec2 uv) {
+  vec2 w = uv + MM(2.0) * warpT(uv, nc(15.0), 3, 1u);
+  Vor cq = voronoiT(w, nc(1.6), 6u, 0.9);
+  return vec4(1.0 - smoothstep(0.015, 0.045, cq.edge), fbmT(uv, nc(25.0), 5, 0.55, 3u), fbmT(uv, nc(12.0), 4, 0.55, 4u), 0.0);
+}
+`
+const PEEL_SURFACE = /* glsl */ `
 // A wall with three histories: grey plaster, old cream paint, flaking mint topcoat.
 Surface surface(vec2 uv) {
-  vec2 w = uv + MM(2.0) * warpT(uv, nc(15.0), 3, 1u);
+  vec4 Fk = F0(), D = F1();
+  float eMm = Fk.x, craq = D.x, damage = D.y, damage2 = D.z;
   float plaster = fbmT(uv, nc(2.0), 5, 0.6, 2u);
-  float damage = fbmT(uv, nc(25.0), 5, 0.55, 3u);
-  float damage2 = fbmT(uv, nc(12.0), 4, 0.55, 4u);
-  // topcoat flakes: Voronoi plates, missing where the damage field is high
-  Vor f = voronoiT(w, nc(4.5), 5u, 0.9);
-  float eMm = f.edge * uTileMm / nc(4.5);
-  float topLost = step(0.05 + 0.25 * f.rnd.x, damage + 0.12);
+  float topLost = step(0.05 + 0.25 * Fk.y, damage + 0.12);
   float creamLost = smoothstep(0.22, 0.3, damage2 + 0.4 * damage);
-  // fine craquelure on the paint that remains
-  Vor cq = voronoiT(w, nc(1.6), 6u, 0.9);
-  float craq = 1.0 - smoothstep(0.015, 0.045, cq.edge);
   float crack = 1.0 - smoothstep(0.05, 0.18, eMm);
   float curl = (1.0 - smoothstep(0.0, 1.6, eMm)) * smoothstep(-0.05, 0.12, damage) * 0.35;
   float h = 0.1 + 0.05 * plaster;
@@ -73,9 +82,10 @@ Surface surface(vec2 uv) {
     alb = mix(hex(#D9D1BE), hex(#E8E1D0), sat(0.5 + plaster));
     layer = 0.5;
   }
+  float mintN = fbmT(uv, nc(8.0), 3, 0.5, 7u);
   if (topLost < 0.5) {
     h += 0.12 + curl - 0.05 * craq;
-    vec3 mint = mix(hex(#7FA9A2), hex(#9CC4BC), sat(0.5 + 2.0 * fbmT(uv, nc(8.0), 3, 0.5, 7u)));
+    vec3 mint = mix(hex(#7FA9A2), hex(#9CC4BC), sat(0.5 + 2.0 * mintN));
     mint = mix(mint, hex(#C9D8CC), smoothstep(0.1, 0.3, curl) * 0.6);
     alb = mix(mint, hex(#4A5450), max(craq * 0.6, crack * 0.8));
     layer = 1.0;
@@ -88,6 +98,7 @@ Surface surface(vec2 uv) {
   return s;
 }
 `
+export const PEELING_PAINT = { fields: [PEEL_FIELD_FLAKES, PEEL_FIELD_DAMAGE], surface: PEEL_SURFACE }
 
 export const SPONGE = /* glsl */ `
 // Yellow cellulose sponge: open pores of every size, soft walls between them.

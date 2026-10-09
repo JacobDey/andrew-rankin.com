@@ -1,0 +1,313 @@
+{
+ "a": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+ "b": "ANGLE (AMD, Radeon RX 580 Series (0x000067DF) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+ "size": 128,
+ "rows": {
+  "rusty-mailbox": {
+   "heightMaxUm": 0,
+   "heightMeanUm": 0,
+   "heightPxOver1pctRelief": 0,
+   "albedoMax": 1,
+   "albedoMean": 0.038,
+   "albedoPctOver1": 0,
+   "albedoPctOver8": 0
+  },
+  "orange-peel": {
+   "heightMaxUm": 0,
+   "heightMeanUm": 0,
+   "heightPxOver1pctRelief": 0,
+   "albedoMax": 1,
+   "albedoMean": 0.0424,
+   "albedoPctOver1": 0,
+   "albedoPctOver8": 0
+  },
+  "basketball": {
+   "heightMaxUm": 0,
+   "heightMeanUm": 0,
+   "heightPxOver1pctRelief": 0,
+   "albedoMax": 1,
+   "albedoMean": 0.0334,
+   "albedoPctOver1": 0,
+   "albedoPctOver8": 0
+  },
+  "oak-bark": {
+   "heightMaxUm": 1,
+   "heightMeanUm": 0.001,
+   "heightPxOver1pctRelief": 0,
+   "albedoMax": 1,
+   "albedoMean": 0.037,
+   "albedoPctOver1": 0,
+   "albedoPctOver8": 0
+  },
+  "birch-bark": {
+   "heightMaxUm": 1,
+   "heightMeanUm": 0,
+   "heightPxOver1pctRelief": 0,
+   "albedoMax": 1,
+   "albedoMean": 0.0175,
+   "albedoPctOver1": 0,
+   "albedoPctOver8": 0
+  },
+  "concrete-sidewalk": {
+   "heightMaxUm": 0,
+   "heightMeanUm": 0,
+   "heightPxOver1pctRelief": 0,
+   "albedoMax": 1,
+   "albedoMean": 0.034,
+   "albedoPctOver1": 0,
+   "albedoPctOver8": 0
+  },
+  "asphalt": {
+   "heightMaxUm": 1,
+   "heightMeanUm": 0,
+   "heightPxOver1pctRelief": 0,
+   "albedoMax": 1,
+   "albedoMean": 0.0249,
+   "albedoPctOver1": 0,
+   "albedoPctOver8": 0
+  },
+  "brick": {
+   "heightMaxUm": 0,
+   "heightMeanUm": 0,
+   "heightPxOver1pctRelief": 0,
+   "albedoMax": 1,
+   "albedoMean": 0.0871,
+   "albedoPctOver1": 0,
+   "albedoPctOver8": 0
+  },
+  "terracotta-pot": {
+   "heightMaxUm": 0,
+   "heightMeanUm": 0,
+   "heightPxOver1pctRelief": 0,
+   "albedoMax": 1,
+   "albedoMean": 0.041,
+   "albedoPctOver1": 0,
+   "albedoPctOver8": 0
+  },
+  "leather-wallet": {
+   "heightMaxUm": 0,
+   "heightMeanUm": 0,
+   "heightPxOver1pctRelief": 0,
+   "albedoMax": 1,
+   "albedoMean": 0.0391,
+   "albedoPctOver1": 0,
+   "albedoPctOver8": 0
+  },
+  "denim": {
+   "heightMaxUm": 0,
+   "heightMeanUm": 0,
+   "heightPxOver1pctRelief": 0,
+   "albedoMax": 1,
+   "albedoMean": 0.0384,
+   "albedoPctOver1": 0,
+   "albedoPctOver8": 0
+  },
+  "wool-knit": {
+   "heightMaxUm": 1,
+   "heightMeanUm": 0,
+   "heightPxOver1pctRelief": 0,
+   "albedoMax": 1,
+   "albedoMean": 0.0403,
+   "albedoPctOver1": 0,
+   "albedoPctOver8": 0
+  },
+  "corduroy": {
+   "heightMaxUm": 0,
+   "heightMeanUm": 0,
+   "heightPxOver1pctRelief": 0,
+   "albedoMax": 1,
+   "albedoMean": 0.0372,
+   "albedoPctOver1": 0,
+   "albedoPctOver8": 0
+  },
+  "burlap": {
+   "heightMaxUm": 1,
+   "heightMeanUm": 0,
+   "heightPxOver1pctRelief": 0,
+   "albedoMax": 1,
+   "albedoMean": 0.0357,
+   "albedoPctOver1": 0,
+   "albedoPctOver8": 0
+  },
+  "cork-board": {
+   "heightMaxUm": 0,
+   "heightMeanUm": 0,
+   "heightPxOver1pctRelief": 0,
+   "albedoMax": 1,
+   "albedoMean": 0.035,
+   "albedoPctOver1": 0,
+   "albedoPctOver8": 0
+  },
+  "sandpaper": {
+   "heightMaxUm": 0,
+   "heightMeanUm": 0,
+   "heightPxOver1pctRelief": 0,
+   "albedoMax": 1,
+   "albedoMean": 0.0171,
+   "albedoPctOver1": 0,
+   "albedoPctOver8": 0
+  },
+  "beach-sand": {
+   "heightMaxUm": 0,
+   "heightMeanUm": 0,
+   "heightPxOver1pctRelief": 0,
+   "albedoMax": 1,
+   "albedoMean": 0.0368,
+   "albedoPctOver1": 0,
+   "albedoPctOver8": 0
+  },
+  "granite-countertop": {
+   "heightMaxUm": 0,
+   "heightMeanUm": 0,
+   "heightPxOver1pctRelief": 0,
+   "albedoMax": 1,
+   "albedoMean": 0.0466,
+   "albedoPctOver1": 0,
+   "albedoPctOver8": 0
+  },
+  "marble-slab": {
+   "heightMaxUm": 0,
+   "heightMeanUm": 0,
+   "heightPxOver1pctRelief": 0,
+   "albedoMax": 1,
+   "albedoMean": 0.0527,
+   "albedoPctOver1": 0,
+   "albedoPctOver8": 0
+  },
+  "brushed-aluminum": {
+   "heightMaxUm": 0,
+   "heightMeanUm": 0,
+   "heightPxOver1pctRelief": 0,
+   "albedoMax": 1,
+   "albedoMean": 0.0352,
+   "albedoPctOver1": 0,
+   "albedoPctOver8": 0
+  },
+  "cast-iron-pan": {
+   "heightMaxUm": 0,
+   "heightMeanUm": 0,
+   "heightPxOver1pctRelief": 0,
+   "albedoMax": 1,
+   "albedoMean": 0.0462,
+   "albedoPctOver1": 0,
+   "albedoPctOver8": 0
+  },
+  "galvanized-steel": {
+   "heightMaxUm": 0,
+   "heightMeanUm": 0,
+   "heightPxOver1pctRelief": 0,
+   "albedoMax": 1,
+   "albedoMean": 0.0484,
+   "albedoPctOver1": 0,
+   "albedoPctOver8": 0
+  },
+  "peeling-paint": {
+   "heightMaxUm": 0,
+   "heightMeanUm": 0,
+   "heightPxOver1pctRelief": 0,
+   "albedoMax": 1,
+   "albedoMean": 0.0387,
+   "albedoPctOver1": 0,
+   "albedoPctOver8": 0
+  },
+  "popcorn-ceiling": {
+   "heightMaxUm": 1,
+   "heightMeanUm": 0,
+   "heightPxOver1pctRelief": 0,
+   "albedoMax": 1,
+   "albedoMean": 0.0356,
+   "albedoPctOver1": 0,
+   "albedoPctOver8": 0
+  },
+  "moss-on-stone": {
+   "heightMaxUm": 0,
+   "heightMeanUm": 0,
+   "heightPxOver1pctRelief": 0,
+   "albedoMax": 1,
+   "albedoMean": 0.0371,
+   "albedoPctOver1": 0,
+   "albedoPctOver8": 0
+  },
+  "leaf": {
+   "heightMaxUm": 0,
+   "heightMeanUm": 0,
+   "heightPxOver1pctRelief": 0,
+   "albedoMax": 1,
+   "albedoMean": 0.0382,
+   "albedoPctOver1": 0,
+   "albedoPctOver8": 0
+  },
+  "strawberry": {
+   "heightMaxUm": 0,
+   "heightMeanUm": 0,
+   "heightPxOver1pctRelief": 0,
+   "albedoMax": 1,
+   "albedoMean": 0.0424,
+   "albedoPctOver1": 0,
+   "albedoPctOver8": 0
+  },
+  "sponge": {
+   "heightMaxUm": 0,
+   "heightMeanUm": 0,
+   "heightPxOver1pctRelief": 0,
+   "albedoMax": 1,
+   "albedoMean": 0.1349,
+   "albedoPctOver1": 0,
+   "albedoPctOver8": 0
+  },
+  "styrofoam": {
+   "heightMaxUm": 0,
+   "heightMeanUm": 0,
+   "heightPxOver1pctRelief": 0,
+   "albedoMax": 1,
+   "albedoMean": 0.0366,
+   "albedoPctOver1": 0,
+   "albedoPctOver8": 0
+  },
+  "cracked-mud": {
+   "heightMaxUm": 1,
+   "heightMeanUm": 0.001,
+   "heightPxOver1pctRelief": 0,
+   "albedoMax": 1,
+   "albedoMean": 0.0349,
+   "albedoPctOver1": 0,
+   "albedoPctOver8": 0
+  },
+  "frost-glass": {
+   "heightMaxUm": 0,
+   "heightMeanUm": 0,
+   "heightPxOver1pctRelief": 0,
+   "albedoMax": 1,
+   "albedoMean": 0.0141,
+   "albedoPctOver1": 0,
+   "albedoPctOver8": 0
+  },
+  "toy-brick": {
+   "heightMaxUm": 0,
+   "heightMeanUm": 0,
+   "heightPxOver1pctRelief": 0,
+   "albedoMax": 1,
+   "albedoMean": 0.0052,
+   "albedoPctOver1": 0,
+   "albedoPctOver8": 0
+  },
+  "vinyl-record": {
+   "heightMaxUm": 0,
+   "heightMeanUm": 0,
+   "heightPxOver1pctRelief": 0,
+   "albedoMax": 1,
+   "albedoMean": 0.0084,
+   "albedoPctOver1": 0,
+   "albedoPctOver8": 0
+  },
+  "golf-ball": {
+   "heightMaxUm": 0,
+   "heightMeanUm": 0,
+   "heightPxOver1pctRelief": 0,
+   "albedoMax": 1,
+   "albedoMean": 0.0267,
+   "albedoPctOver1": 0,
+   "albedoPctOver8": 0
+  }
+ }
+}

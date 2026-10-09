@@ -20,7 +20,7 @@ export interface FluidTrayOptions {
   /** Fluid grid columns; rows follow the aspect. Default 128 (-> 96 rows). */
   nx?: number
   advect?: boolean
-  /** Fixed physics step (s). Default 1/240. */
+  /** Fixed physics step (s); the solver splits it further when CFL needs. Default 1/120. */
   fixedDt?: number
   /** Cap on fixed steps per update() call (prevents a death spiral; the sim slows instead). */
   maxStepsPerUpdate?: number
@@ -158,7 +158,7 @@ export class FluidTray {
       o.kinetics,
     )
     this.rng = new Rng(o.seed ?? 7)
-    this.fixedDt = o.fixedDt ?? 1 / 240
+    this.fixedDt = o.fixedDt ?? 1 / 120
     this.maxStepsPerUpdate = o.maxStepsPerUpdate ?? 10
     this.chemHz = o.chemHz ?? 30
     this.maxDroplets = o.maxDroplets ?? 384

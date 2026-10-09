@@ -1,0 +1,210 @@
+{
+ "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+ "wallMs": 19939,
+ "result": {
+  "rusty-mailbox": {
+   "coldMs": 638,
+   "compileMs": 12,
+   "bakeMs": 341,
+   "mpixPerS": 0.8
+  },
+  "orange-peel": {
+   "coldMs": 318,
+   "compileMs": 11,
+   "bakeMs": 190.9,
+   "mpixPerS": 1.4
+  },
+  "basketball": {
+   "coldMs": 278,
+   "compileMs": 14,
+   "bakeMs": 149.2,
+   "mpixPerS": 1.8
+  },
+  "oak-bark": {
+   "coldMs": 427,
+   "compileMs": 18,
+   "bakeMs": 259.5,
+   "mpixPerS": 1
+  },
+  "birch-bark": {
+   "coldMs": 402,
+   "compileMs": 13,
+   "bakeMs": 205.9,
+   "mpixPerS": 1.3
+  },
+  "concrete-sidewalk": {
+   "coldMs": 425,
+   "compileMs": 14,
+   "bakeMs": 222.8,
+   "mpixPerS": 1.2
+  },
+  "asphalt": {
+   "coldMs": 454,
+   "compileMs": 18,
+   "bakeMs": 206.5,
+   "mpixPerS": 1.3
+  },
+  "brick": {
+   "coldMs": 384,
+   "compileMs": 12,
+   "bakeMs": 220.9,
+   "mpixPerS": 1.2
+  },
+  "terracotta-pot": {
+   "coldMs": 380,
+   "compileMs": 18,
+   "bakeMs": 215.8,
+   "mpixPerS": 1.2
+  },
+  "leather-wallet": {
+   "coldMs": 367,
+   "compileMs": 20,
+   "bakeMs": 202.1,
+   "mpixPerS": 1.3
+  },
+  "denim": {
+   "coldMs": 126,
+   "compileMs": 0,
+   "bakeMs": 125.7,
+   "mpixPerS": 2.1
+  },
+  "wool-knit": {
+   "coldMs": 269,
+   "compileMs": 24,
+   "bakeMs": 151.6,
+   "mpixPerS": 1.7
+  },
+  "corduroy": {
+   "coldMs": 238,
+   "compileMs": 21,
+   "bakeMs": 134.2,
+   "mpixPerS": 2
+  },
+  "burlap": {
+   "coldMs": 315,
+   "compileMs": 13,
+   "bakeMs": 172.9,
+   "mpixPerS": 1.5
+  },
+  "cork-board": {
+   "coldMs": 414,
+   "compileMs": 19,
+   "bakeMs": 236.5,
+   "mpixPerS": 1.1
+  },
+  "sandpaper": {
+   "coldMs": 115,
+   "compileMs": 0,
+   "bakeMs": 110.4,
+   "mpixPerS": 2.4
+  },
+  "beach-sand": {
+   "coldMs": 263,
+   "compileMs": 11,
+   "bakeMs": 144.5,
+   "mpixPerS": 1.8
+  },
+  "granite-countertop": {
+   "coldMs": 478,
+   "compileMs": 12,
+   "bakeMs": 269.2,
+   "mpixPerS": 1
+  },
+  "marble-slab": {
+   "coldMs": 489,
+   "compileMs": 19,
+   "bakeMs": 291.8,
+   "mpixPerS": 0.9
+  },
+  "brushed-aluminum": {
+   "coldMs": 319,
+   "compileMs": 19,
+   "bakeMs": 157.6,
+   "mpixPerS": 1.7
+  },
+  "cast-iron-pan": {
+   "coldMs": 270,
+   "compileMs": 13,
+   "bakeMs": 154.7,
+   "mpixPerS": 1.7
+  },
+  "galvanized-steel": {
+   "coldMs": 423,
+   "compileMs": 14,
+   "bakeMs": 238,
+   "mpixPerS": 1.1
+  },
+  "peeling-paint": {
+   "coldMs": 514,
+   "compileMs": 13,
+   "bakeMs": 297.5,
+   "mpixPerS": 0.9
+  },
+  "popcorn-ceiling": {
+   "coldMs": 374,
+   "compileMs": 14,
+   "bakeMs": 163.8,
+   "mpixPerS": 1.6
+  },
+  "moss-on-stone": {
+   "coldMs": 359,
+   "compileMs": 13,
+   "bakeMs": 215.3,
+   "mpixPerS": 1.2
+  },
+  "leaf": {
+   "coldMs": 320,
+   "compileMs": 19,
+   "bakeMs": 200.8,
+   "mpixPerS": 1.3
+  },
+  "strawberry": {
+   "coldMs": 334,
+   "compileMs": 13,
+   "bakeMs": 153.5,
+   "mpixPerS": 1.7
+  },
+  "sponge": {
+   "coldMs": 261,
+   "compileMs": 24,
+   "bakeMs": 153.7,
+   "mpixPerS": 1.7
+  },
+  "styrofoam": {
+   "coldMs": 256,
+   "compileMs": 15,
+   "bakeMs": 163.3,
+   "mpixPerS": 1.6
+  },
+  "cracked-mud": {
+   "coldMs": 462,
+   "compileMs": 13,
+   "bakeMs": 282.9,
+   "mpixPerS": 0.9
+  },
+  "frost-glass": {
+   "coldMs": 297,
+   "compileMs": 20,
+   "bakeMs": 189.8,
+   "mpixPerS": 1.4
+  },
+  "toy-brick": {
+   "coldMs": 218,
+   "compileMs": 14,
+   "bakeMs": 120.7,
+   "mpixPerS": 2.2
+  },
+  "vinyl-record": {
+   "coldMs": 211,
+   "compileMs": 13,
+   "bakeMs": 101.7,
+   "mpixPerS": 2.6
+  },
+  "golf-ball": {
+   "coldMs": 221,
+   "compileMs": 12,
+   "bakeMs": 136.5,
+   "mpixPerS": 1.9
+  }
+ }
+}

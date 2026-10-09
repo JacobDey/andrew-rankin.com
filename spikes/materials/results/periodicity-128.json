@@ -1,0 +1,210 @@
+{
+ "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+ "wallMs": 8939,
+ "result": {
+  "rusty-mailbox": {
+   "maxHeightDiffMm": 0,
+   "texelsOver1um": 0,
+   "albedoMax": 1,
+   "albedoTexelsOver2": 0
+  },
+  "orange-peel": {
+   "maxHeightDiffMm": 0,
+   "texelsOver1um": 0,
+   "albedoMax": 0,
+   "albedoTexelsOver2": 0
+  },
+  "basketball": {
+   "maxHeightDiffMm": 0.00007,
+   "texelsOver1um": 0,
+   "albedoMax": 0,
+   "albedoTexelsOver2": 0
+  },
+  "oak-bark": {
+   "maxHeightDiffMm": 0.00008,
+   "texelsOver1um": 0,
+   "albedoMax": 1,
+   "albedoTexelsOver2": 0
+  },
+  "birch-bark": {
+   "maxHeightDiffMm": 0.00002,
+   "texelsOver1um": 0,
+   "albedoMax": 1,
+   "albedoTexelsOver2": 0
+  },
+  "concrete-sidewalk": {
+   "maxHeightDiffMm": 0,
+   "texelsOver1um": 0,
+   "albedoMax": 0,
+   "albedoTexelsOver2": 0
+  },
+  "asphalt": {
+   "maxHeightDiffMm": 0.0001,
+   "texelsOver1um": 0,
+   "albedoMax": 1,
+   "albedoTexelsOver2": 0
+  },
+  "brick": {
+   "maxHeightDiffMm": 0,
+   "texelsOver1um": 0,
+   "albedoMax": 0,
+   "albedoTexelsOver2": 0
+  },
+  "terracotta-pot": {
+   "maxHeightDiffMm": 0,
+   "texelsOver1um": 0,
+   "albedoMax": 0,
+   "albedoTexelsOver2": 0
+  },
+  "leather-wallet": {
+   "maxHeightDiffMm": 0.00001,
+   "texelsOver1um": 0,
+   "albedoMax": 1,
+   "albedoTexelsOver2": 0
+  },
+  "denim": {
+   "maxHeightDiffMm": 0,
+   "texelsOver1um": 0,
+   "albedoMax": 1,
+   "albedoTexelsOver2": 0
+  },
+  "wool-knit": {
+   "maxHeightDiffMm": 0,
+   "texelsOver1um": 0,
+   "albedoMax": 0,
+   "albedoTexelsOver2": 0
+  },
+  "corduroy": {
+   "maxHeightDiffMm": 0,
+   "texelsOver1um": 0,
+   "albedoMax": 0,
+   "albedoTexelsOver2": 0
+  },
+  "burlap": {
+   "maxHeightDiffMm": 0.00005,
+   "texelsOver1um": 0,
+   "albedoMax": 1,
+   "albedoTexelsOver2": 0
+  },
+  "cork-board": {
+   "maxHeightDiffMm": 0.00004,
+   "texelsOver1um": 0,
+   "albedoMax": 1,
+   "albedoTexelsOver2": 0
+  },
+  "sandpaper": {
+   "maxHeightDiffMm": 0,
+   "texelsOver1um": 0,
+   "albedoMax": 0,
+   "albedoTexelsOver2": 0
+  },
+  "beach-sand": {
+   "maxHeightDiffMm": 0.00003,
+   "texelsOver1um": 0,
+   "albedoMax": 1,
+   "albedoTexelsOver2": 0
+  },
+  "granite-countertop": {
+   "maxHeightDiffMm": 0,
+   "texelsOver1um": 0,
+   "albedoMax": 1,
+   "albedoTexelsOver2": 0
+  },
+  "marble-slab": {
+   "maxHeightDiffMm": 0,
+   "texelsOver1um": 0,
+   "albedoMax": 1,
+   "albedoTexelsOver2": 0
+  },
+  "brushed-aluminum": {
+   "maxHeightDiffMm": 0,
+   "texelsOver1um": 0,
+   "albedoMax": 0,
+   "albedoTexelsOver2": 0
+  },
+  "cast-iron-pan": {
+   "maxHeightDiffMm": 0,
+   "texelsOver1um": 0,
+   "albedoMax": 0,
+   "albedoTexelsOver2": 0
+  },
+  "galvanized-steel": {
+   "maxHeightDiffMm": 0,
+   "texelsOver1um": 0,
+   "albedoMax": 1,
+   "albedoTexelsOver2": 0
+  },
+  "peeling-paint": {
+   "maxHeightDiffMm": 0.00001,
+   "texelsOver1um": 0,
+   "albedoMax": 1,
+   "albedoTexelsOver2": 0
+  },
+  "popcorn-ceiling": {
+   "maxHeightDiffMm": 0.00011,
+   "texelsOver1um": 0,
+   "albedoMax": 1,
+   "albedoTexelsOver2": 0
+  },
+  "moss-on-stone": {
+   "maxHeightDiffMm": 0.00001,
+   "texelsOver1um": 0,
+   "albedoMax": 0,
+   "albedoTexelsOver2": 0
+  },
+  "leaf": {
+   "maxHeightDiffMm": 0.00001,
+   "texelsOver1um": 0,
+   "albedoMax": 1,
+   "albedoTexelsOver2": 0
+  },
+  "strawberry": {
+   "maxHeightDiffMm": 0.00001,
+   "texelsOver1um": 0,
+   "albedoMax": 1,
+   "albedoTexelsOver2": 0
+  },
+  "sponge": {
+   "maxHeightDiffMm": 0.00006,
+   "texelsOver1um": 0,
+   "albedoMax": 1,
+   "albedoTexelsOver2": 0
+  },
+  "styrofoam": {
+   "maxHeightDiffMm": 0,
+   "texelsOver1um": 0,
+   "albedoMax": 0,
+   "albedoTexelsOver2": 0
+  },
+  "cracked-mud": {
+   "maxHeightDiffMm": 0.00027,
+   "texelsOver1um": 0,
+   "albedoMax": 1,
+   "albedoTexelsOver2": 0
+  },
+  "frost-glass": {
+   "maxHeightDiffMm": 0.00002,
+   "texelsOver1um": 0,
+   "albedoMax": 1,
+   "albedoTexelsOver2": 0
+  },
+  "toy-brick": {
+   "maxHeightDiffMm": 0,
+   "texelsOver1um": 0,
+   "albedoMax": 0,
+   "albedoTexelsOver2": 0
+  },
+  "vinyl-record": {
+   "maxHeightDiffMm": 0,
+   "texelsOver1um": 0,
+   "albedoMax": 1,
+   "albedoTexelsOver2": 0
+  },
+  "golf-ball": {
+   "maxHeightDiffMm": 0,
+   "texelsOver1um": 0,
+   "albedoMax": 0,
+   "albedoTexelsOver2": 0
+  }
+ }
+}

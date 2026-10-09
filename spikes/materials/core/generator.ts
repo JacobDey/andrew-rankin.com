@@ -1,5 +1,10 @@
 // GPU material generator.
 //
+//   Fields  (optional) recipe.fields[i](uv) -> RGBA32F each. Heavy noise is split into small
+//           programs because shader compile cost is strongly superlinear in program size
+//           (ANGLE/D3D11 measured: 8 noise calls 0.8 s, 32 calls 5.5 s, 64 calls 18 s), and
+//           separate programs can compile in parallel. The surface pass reads them with an
+//           exact texelFetch at its own pixel: F0() .. F3().
 //   Pass A  "surface"  recipe(uv) -> MRT [RGBA32F: height mm, rough, metal, layer]
 //                                       [RGBA16F: linear albedo, loose]
 //   Pass B  "derive"   reads pass A with texelFetch -> MRT
@@ -12,7 +17,9 @@ import * as THREE from 'three'
 import { TOOLKIT_GLSL } from './glsl/toolkit'
 import { preprocessGlsl } from './glsl/preprocess'
 import { RECIPES } from './recipes/index'
-import { getMaterialInfo } from './catalog'
+import type { RecipeDef } from './recipes/index'
+import { getMaterialInfo, registerMaterialInfo } from './catalog'
+import type { MaterialInfo } from './types'
 import type { GenerateOptions, MaterialMaps, Region } from './types'
 
 const VERT = /* glsl */ `
@@ -31,6 +38,21 @@ void main() {
   oAlbedo = vec4(clamp(s.albedo, 0.0, 1.0), clamp(s.loose, 0.0, 1.0));
 }
 `
+
+/** Extra fractal octaves compiled into the "zoom" program variant (see toolkit fbm()). */
+export const ZOOM_EXTRA_OCTAVES = 4
+
+const FIELD_MAIN = /* glsl */ `
+uniform vec2 uOrigin;
+layout(location = 0) out vec4 oField;
+void main() {
+  vec2 uv = uOrigin + gl_FragCoord.xy * uPx;
+  oField = field(uv);
+}
+`
+
+const fieldAccessors = (n: number) =>
+  Array.from({ length: n }, (_, i) => `uniform sampler2D uF${i};\nvec4 F${i}() { return texelFetch(uF${i}, ivec2(gl_FragCoord.xy), 0); }`).join('\n')
 
 const DERIVE_FRAG = /* glsl */ `
 precision highp float;
@@ -131,11 +153,37 @@ export function getGeneratorCaps(renderer: THREE.WebGLRenderer): GeneratorCaps {
   }
 }
 
-/** Full GLSL source of a recipe's surface pass (useful for debugging / shader caches). */
-export function buildSurfaceShader(id: string): string {
+/**
+ * Add a material at runtime: catalog metadata plus its GLSL recipe (single string or
+ * { fields, surface }). Lets a game ship its own surfaces without editing this library.
+ */
+export function registerMaterial(info: MaterialInfo, recipe: RecipeDef): void {
+  registerMaterialInfo(info)
+  RECIPES[info.id] = recipe
+}
+
+function recipeOf(id: string): RecipeDef {
   const recipe = RECIPES[id]
   if (!recipe) throw new Error(`No recipe for material "${id}"`)
-  return preprocessGlsl(TOOLKIT_GLSL + '\n' + recipe + '\n' + SURFACE_MAIN)
+  return recipe
+}
+/** Number of field passes a recipe uses (0 for single-pass recipes). */
+export function fieldCount(id: string): number {
+  const r = recipeOf(id)
+  return typeof r === 'string' ? 0 : r.fields.length
+}
+/** Full GLSL source of a recipe's surface pass (useful for debugging / shader caches). */
+export function buildSurfaceShader(id: string): string {
+  const r = recipeOf(id)
+  if (typeof r === 'string') return preprocessGlsl(TOOLKIT_GLSL + '\n' + r + '\n' + SURFACE_MAIN)
+  return preprocessGlsl(TOOLKIT_GLSL + '\n' + fieldAccessors(r.fields.length) + '\n' + r.surface + '\n' + SURFACE_MAIN)
+}
+/** Full GLSL source of field pass i of a multi-pass recipe. */
+export function buildFieldShader(id: string, i: number): string {
+  const r = recipeOf(id)
+  if (typeof r === 'string' || !r.fields[i]) throw new Error(`Material "${id}" has no field ${i}`)
+  // fields chain: field i may read fields 0..i-1 (e.g. a domain warp computed once)
+  return preprocessGlsl(TOOLKIT_GLSL + '\n' + fieldAccessors(i) + '\n' + r.fields[i] + '\n' + FIELD_MAIN)
 }
 
 export class MaterialGenerator {
@@ -147,6 +195,7 @@ export class MaterialGenerator {
   private programs = new Map<string, THREE.RawShaderMaterial>()
   private derive: THREE.RawShaderMaterial
   private pool = new Map<number, PassA>()
+  private fieldPool = new Map<number, THREE.WebGLRenderTarget[]>()
 
   constructor(renderer: THREE.WebGLRenderer) {
     this.renderer = renderer
@@ -180,43 +229,76 @@ export class MaterialGenerator {
     this.scene.add(this.mesh)
   }
 
-  private program(id: string): THREE.RawShaderMaterial {
-    let m = this.programs.get(id)
+  /** pass = -1 for the surface pass, i >= 0 for field pass i */
+  /** pass = -1 for the surface pass, i >= 0 for field pass i; zoom = the extra-octave variant */
+  private program(id: string, pass = -1, zoom = false): THREE.RawShaderMaterial {
+    const key = (pass < 0 ? id : `${id}#${pass}`) + (zoom ? '@zoom' : '')
+    let m = this.programs.get(key)
     if (!m) {
+      const uniforms: Record<string, THREE.IUniform> = {
+        uSeed: { value: 1 },
+        uTileMm: { value: 10 },
+        uPx: { value: 1 / 512 },
+        uOrigin: { value: new THREE.Vector2() },
+      }
+      const readable = pass < 0 ? fieldCount(id) : pass   // fields chain: pass i reads 0..i-1
+      for (let i = 0; i < readable; i++) uniforms[`uF${i}`] = { value: null }
       m = new THREE.RawShaderMaterial({
         glslVersion: THREE.GLSL3,
         vertexShader: VERT,
-        fragmentShader: buildSurfaceShader(id),
-        uniforms: {
-          uSeed: { value: 1 },
-          uTileMm: { value: 10 },
-          uPx: { value: 1 / 512 },
-          uOrigin: { value: new THREE.Vector2() },
-        },
+        fragmentShader: pass < 0 ? buildSurfaceShader(id) : buildFieldShader(id, pass),
+        defines: zoom ? { EXTRA_OCT: ZOOM_EXTRA_OCTAVES } : {},
+        uniforms,
         depthTest: false,
         depthWrite: false,
         blending: THREE.NoBlending,
       })
-      m.name = `material:${id}`
-      this.programs.set(id, m)
+      m.name = `material:${key}`
+      this.programs.set(key, m)
     }
     return m
   }
 
-  /** Compile (and cache) a recipe's program ahead of time. Uses KHR_parallel_shader_compile when present. */
-  async precompile(id: string): Promise<number> {
+  /**
+   * Compile (and cache) all of a recipe's programs ahead of time. They are submitted together,
+   * so with KHR_parallel_shader_compile the driver can build them concurrently.
+   */
+  async precompile(id: string, zoom = false): Promise<number> {
     const t0 = performance.now()
-    const mat = this.program(id)
-    if ((mat.userData as { compiled?: boolean }).compiled) return 0
-    this.mesh.material = mat
-    await this.renderer.compileAsync(this.scene, this.camera)
-    // surface a GLSL error as an exception instead of silently baking garbage
-    const prog = (this.renderer.properties.get(mat) as { currentProgram?: { diagnostics?: { runnable: boolean; fragmentShader?: { log: string } } } }).currentProgram
-    if (prog?.diagnostics && !prog.diagnostics.runnable) {
-      throw new Error(`Material "${id}" failed to compile: ${prog.diagnostics.fragmentShader?.log ?? 'see console'}`)
+    const mats = [...Array.from({ length: fieldCount(id) }, (_, i) => this.program(id, i, zoom)), this.program(id, -1, zoom)]
+    const todo = mats.filter((m) => !(m.userData as { compiled?: boolean }).compiled)
+    if (!todo.length) return 0
+    const scene = new THREE.Scene()
+    for (const m of todo) {
+      const mesh = new THREE.Mesh(this.mesh.geometry, m)
+      mesh.frustumCulled = false
+      scene.add(mesh)
     }
-    ;(mat.userData as { compiled?: boolean }).compiled = true
+    await this.renderer.compileAsync(scene, this.camera)
+    for (const m of todo) {
+      // surface a GLSL error as an exception instead of silently baking garbage
+      const prog = (this.renderer.properties.get(m) as { currentProgram?: { diagnostics?: { runnable: boolean; fragmentShader?: { log: string } } } }).currentProgram
+      if (prog?.diagnostics && !prog.diagnostics.runnable) {
+        throw new Error(`Material "${m.name}" failed to compile: ${prog.diagnostics.fragmentShader?.log ?? 'see console'}`)
+      }
+      ;(m.userData as { compiled?: boolean }).compiled = true
+    }
     return performance.now() - t0
+  }
+
+  private fieldTargets(size: number, n: number): THREE.WebGLRenderTarget[] {
+    let list = this.fieldPool.get(size)
+    if (!list) { list = []; this.fieldPool.set(size, list) }
+    while (list.length < n) {
+      const rt = new THREE.WebGLRenderTarget(size, size, {
+        depthBuffer: false, stencilBuffer: false, generateMipmaps: false,
+        minFilter: THREE.NearestFilter, magFilter: THREE.NearestFilter,
+        type: this.caps.floatTargets ? THREE.FloatType : THREE.HalfFloatType, format: THREE.RGBAFormat,
+      })
+      rt.texture.name = `field${list.length}`
+      list.push(rt)
+    }
+    return list
   }
 
   private passA(size: number): PassA {
@@ -245,6 +327,8 @@ export class MaterialGenerator {
   trim(): void {
     for (const p of this.pool.values()) p.rt.dispose()
     this.pool.clear()
+    for (const l of this.fieldPool.values()) for (const rt of l) rt.dispose()
+    this.fieldPool.clear()
   }
 
   dispose(): void {
@@ -257,13 +341,18 @@ export class MaterialGenerator {
 
   async generate(id: string, opts: GenerateOptions = {}): Promise<MaterialMaps> {
     const info = getMaterialInfo(id)
+    if ((this.renderer.getContext() as WebGL2RenderingContext).isContextLost()) {
+      throw new Error('WebGL context lost: rebuild the renderer and the generator (getGenerator) before baking again.')
+    }
     const size = Math.max(16, Math.min(opts.size ?? 1024, this.caps.maxTextureSize))
     const seed = (opts.seed ?? 1) >>> 0
     const region: Region = opts.region ?? { x: 0, y: 0, w: 1 }
     const mip = opts.mipmaps ?? true
     const tileable = Number.isInteger(region.x) && Number.isInteger(region.y) && Number.isInteger(region.w) && region.w >= 1
     const t0 = performance.now()
-    const compileMs = await this.precompile(id)
+    // sub-tile regions (racking in) use the zoom variant: extra octaves where they are resolvable
+    const zoom = opts.detail === 'zoom' || ((opts.detail ?? 'auto') === 'auto' && region.w < 1)
+    const compileMs = await this.precompile(id, zoom)
 
     const r = this.renderer
     const prevTarget = r.getRenderTarget()
@@ -271,10 +360,25 @@ export class MaterialGenerator {
     r.autoClear = false
 
     const tGpu0 = performance.now()
+    const texelUv = region.w / size
+    // ---- field passes (multi-pass recipes)
+    const nf = fieldCount(id)
+    const fields = nf ? this.fieldTargets(size, nf) : []
+    for (let i = 0; i < nf; i++) {
+      const fm = this.program(id, i, zoom)
+      for (let k = 0; k < i; k++) fm.uniforms[`uF${k}`].value = fields[k].texture
+      fm.uniforms.uSeed.value = seed
+      fm.uniforms.uTileMm.value = info.tileMm
+      fm.uniforms.uPx.value = texelUv
+      ;(fm.uniforms.uOrigin.value as THREE.Vector2).set(region.x, region.y)
+      this.mesh.material = fm
+      r.setRenderTarget(fields[i])
+      r.render(this.scene, this.camera)
+    }
     // ---- pass A
     const a = this.passA(size)
-    const mat = this.program(id)
-    const texelUv = region.w / size
+    const mat = this.program(id, -1, zoom)
+    for (let i = 0; i < nf; i++) mat.uniforms[`uF${i}`].value = fields[i].texture
     mat.uniforms.uSeed.value = seed
     mat.uniforms.uTileMm.value = info.tileMm
     mat.uniforms.uPx.value = texelUv
