@@ -28,7 +28,7 @@
 // Exit code 1 when the page threw an uncaught error or failed to load.
 
 import { chromium } from 'playwright'
-import { mkdirSync, readFileSync, existsSync } from 'node:fs'
+import { mkdirSync, readFileSync, existsSync, writeFileSync, unlinkSync, statSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 
 const argv = process.argv.slice(2)
@@ -72,6 +72,33 @@ const killer = setTimeout(() => {
   console.error(`TIMEOUT after ${opt.timeout}ms`)
   process.exit(2)
 }, opt.timeout)
+
+// Many agents share one machine with little RAM: at most SHOOT_SLOTS (default 3)
+// Chromium instances run at once. Slots are lock files; stale ones expire.
+const SLOTS = Number(process.env.SHOOT_SLOTS || 3)
+const lockDir = resolve('shots/.locks')
+mkdirSync(lockDir, { recursive: true })
+let lockFile = null
+for (let tries = 0; !lockFile; tries++) {
+  for (let i = 0; i < SLOTS && !lockFile; i++) {
+    const f = resolve(lockDir, `slot-${i}`)
+    try {
+      if (existsSync(f) && Date.now() - statSync(f).mtimeMs > opt.timeout + 15000) unlinkSync(f)
+      writeFileSync(f, String(process.pid), { flag: 'wx' })
+      lockFile = f
+    } catch {}
+  }
+  if (!lockFile) {
+    if (tries % 20 === 0) console.log(`waiting for a browser slot (${SLOTS} busy)...`)
+    await new Promise((r) => setTimeout(r, 750))
+    killer.refresh()
+  }
+}
+const releaseLock = () => { try { unlinkSync(lockFile) } catch {} }
+process.on('exit', releaseLock)
+process.on('SIGINT', () => process.exit(130))
+process.on('SIGTERM', () => process.exit(143))
+killer.refresh()
 
 const browser = await chromium.launch({ args: [...glArgs, '--autoplay-policy=no-user-gesture-required'] })
 const [w, h] = opt.mobile ? [390, 844] : opt.size.split('x').map(Number)
