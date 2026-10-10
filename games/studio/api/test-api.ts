@@ -51,6 +51,9 @@ export function buildTestApi(p: Parts) {
         sprinkler: yard.sprinkler.on,
         drops: yard.sprinkler.aliveAt(e.sim.t),
         finder: camera.finderOn,
+        camBusy: camera.busy,
+        frameCursor: store.house.frameCursor,
+        wound: store.house.wound,
         fridge: store.house.fridge,
         owned: store.house.owned,
       }
@@ -222,5 +225,14 @@ export function buildTestApi(p: Parts) {
       return ys.length >= 4 ? (ys[3] - tFirst) / 3 : NaN
     },
     vec: (x: number, y: number, z: number) => new THREE.Vector3(x, y, z),
+    /** simulate a tap on a named pickable in the current room (test helper) */
+    tap(name: string) {
+      const pk = e.pickables.find((q) => q.object.name === name && (q.room === 'any' || q.room === rooms.current))
+      if (!pk) return false
+      const pt = new THREE.Vector3()
+      pk.object.getWorldPosition(pt)
+      const dir = pt.clone().sub(e.eye.position).normalize()
+      return !!pk.on({ kind: 'tap', point: pt, ray: new THREE.Ray(e.eye.position.clone(), dir), dx: 0, dy: 0, x: 0, y: 0, vx: 0, vy: 0, pointerType: 'mouse' })
+    },
   }
 }

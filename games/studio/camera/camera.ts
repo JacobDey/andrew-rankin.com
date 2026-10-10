@@ -472,7 +472,8 @@ export function installCamera(e: Engine, ph: Physics, st: Studio, input: Input):
     e.bus.emit('noise', { pos: finderCam.position.clone(), loudness: spec.loudness, kind: 'shutter' })
   }
 
-  const doCapture = async (tSec: number, o: { live: boolean; stab?: boolean; cable?: boolean }): Promise<ShotRecord | null> => {
+  const doCapture = async (tSecIn: number, o: { live: boolean; stab?: boolean; cable?: boolean; realtime?: boolean; bulb?: boolean }): Promise<ShotRecord | null> => {
+    let tSec = tSecIn
     const r = roll()
     if (!r) {
       shToast('No film in the camera.')
@@ -539,8 +540,38 @@ export function installCamera(e: Engine, ph: Physics, st: Studio, input: Input):
         })
         // the world simply continues: the shutter time really passed
         advanceTo(t0 + tSec)
+      } else if (o.realtime) {
+        // live path, driven by real frames: the world keeps running while the shutter is open (Bulb, lens cap,
+        // anything over 1/8 s); one sample per 1/30 s of sim time; time-lapse above 15 s
+        if (timelapse > 1) e.day.rate = timelapse
+        const ex: Exposure = photo.begin({ scene: e.scene }, ps, { pose: finderCam, time0: t0, longEdge, radianceScale: 1000, spectral, tilt, layers: 1, grain: false, expectedSamples: o.bulb ? 120 : Math.max(4, Math.ceil(span * 30)), seed: (e.seed * 977 + house.frameCursor) >>> 0, shadowEvery: 4 })
+        liveGhost = ex
+        let acc = 1 / 30
+        let exposed = 0
+        await new Promise<void>((resolve) => {
+          liveTick = (dt: number, end: boolean) => {
+            const tRel = e.sim.t - t0
+            acc += dt
+            exposed += dt * timelapse
+            if (acc >= 1 / 30 || end) {
+              measureNow(tRel)
+              ex.addSample({ time: e.sim.t, tRel, pose: { position: sampleCam.position.clone(), quaternion: sampleCam.quaternion.clone() }, weightS: acc * timelapse })
+              acc = 0
+            }
+            ticker.hidden = false
+            ticker.textContent = `${exposed.toFixed(1)}s`
+            if (end || (!o.bulb && tRel >= span)) {
+              liveTick = null
+              ticker.hidden = true
+              resolve()
+            }
+          }
+        })
+        if (o.bulb) tSec = Math.max(1 / 30, exposed)
+        liveGhost = null
+        result = await ex.finish()
       } else {
-        // live path: one sample per 1/30 s of sim time (at most 120), time-lapse above 15 s
+        // live path, deterministic (test API): one sample per 1/30 s of sim time (at most 120), time-lapse above 15 s
         const n = Math.max(4, Math.min(120, Math.ceil(span * 30)))
         if (timelapse > 1) e.day.rate = timelapse * 1 // game-seconds per sim-second
         const ex: Exposure = photo.begin({ scene: e.scene }, ps, { pose: finderCam, time0: t0, longEdge, radianceScale: 1000, spectral, tilt, layers: 1, grain: false, expectedSamples: n, seed: (e.seed * 977 + house.frameCursor) >>> 0, shadowEvery: 4 })
@@ -561,6 +592,7 @@ export function installCamera(e: Engine, ph: Physics, st: Studio, input: Input):
       busy = false
     }
     poseAtTime(e.sim.t, sampleCam)
+    if (!midDone) callExtra(sampleCam, 'mid')
     callExtra(sampleCam, 'end')
     if (build.shutter === 'cap') Audio.play('studio.cap', { open: 0 })
     const m = finishMeasure(ps, tSec)
@@ -614,6 +646,8 @@ export function installCamera(e: Engine, ph: Physics, st: Studio, input: Input):
     return record
   }
   let liveGhost: Exposure | null = null
+  let liveTick: ((dt: number, end: boolean) => void) | null = null
+  e.onFrame((dt) => liveTick?.(dt, false), 20)
   const shToast = (t: string) => st.shell.toast(t)
 
   // ---------------------------------------------------------------- finder UI
@@ -791,6 +825,7 @@ export function installCamera(e: Engine, ph: Physics, st: Studio, input: Input):
       if (!lockNotch) void endBulb()
       return
     }
+    if (busy) return
     void fire({ stab })
   }
   shutterBtn.addEventListener('pointerup', release)
@@ -800,34 +835,30 @@ export function installCamera(e: Engine, ph: Physics, st: Studio, input: Input):
   const startBulb = () => {
     if (busy || bulbLive) return
     bulbLive = { start: performance.now() }
-    ticker.hidden = false
-    if (build.shutter === 'cap') Audio.play('studio.cap', { open: 1 })
+    void fire({ bulb: true })
   }
   const endBulb = async () => {
     if (!bulbLive) return
-    const held = (performance.now() - bulbLive.start) / 1000
     bulbLive = null
     lockNotch = false
     shutterBtn.classList.remove('st-shutterbtn--lock')
-    ticker.hidden = true
-    // the hold has already passed in the live world: integrate that span from now (deterministic re-run)
-    await fire({ bulbSeconds: Math.max(0.2, held) })
+    liveTick?.(0, true)
   }
-  e.onFrame(() => {
-    if (bulbLive) ticker.textContent = `${((performance.now() - bulbLive.start) / 1000).toFixed(1)}s`
-  })
-
-  const fire = async (o: { stab?: boolean; bulbSeconds?: number; cable?: boolean } = {}): Promise<ShotRecord | null> => {
+  const fire = async (o: { stab?: boolean; bulb?: boolean; cable?: boolean } = {}): Promise<ShotRecord | null> => {
     if (busy) return null
-    const t = o.bulbSeconds ?? (settings.t === 0 ? 1 : actualTime(build.shutter, settings.t))
-    const live = t > 1 / 8
-    // finder blackout covers the compute
-    hud.fade.classList.add('st-fade--black')
-    await new Promise((res) => requestAnimationFrame(() => res(null)))
+    const bulb = !!o.bulb || settings.t === 0
+    const t = bulb ? 0 : actualTime(build.shutter, settings.t)
+    const live = bulb || t > 1 / 8
+    if (!live) {
+      // the finder blacks out while the fast path integrates the interval
+      hud.fade.classList.add('st-fade--black')
+      await new Promise((res) => requestAnimationFrame(() => res(null)))
+    }
     try {
-      return await doCapture(t, { live, stab: o.stab, cable: o.cable })
+      return await doCapture(t, { live, stab: o.stab, cable: o.cable, realtime: live, bulb })
     } finally {
       hud.fade.classList.remove('st-fade--black')
+      bulbLive = null
     }
   }
 
@@ -890,15 +921,17 @@ export function installCamera(e: Engine, ph: Physics, st: Studio, input: Input):
     const H = e.stage.clientHeight
     const aspect = spec.formatMm[0] / spec.formatMm[1]
     const small = W < 640
-    const availW = W - (small ? 70 : 150)
-    const availH = H - (small ? 210 : 150)
+    const padL = small ? 32 : 75
+    const padR = small ? 62 : 75
+    const availW = W - padL - padR
+    const availH = H - (small ? 230 : 150)
     let bw = availW
     let bh = bw / aspect
     if (bh > availH) {
       bh = availH
       bw = bh * aspect
     }
-    const x = (W - bw) / 2 - (small ? 10 : 0)
+    const x = padL + (availW - bw) / 2
     const y = small ? 64 + (availH - bh) / 2 : (H - bh) / 2 - 10
     Object.assign(bezel.style, { left: `${x}px`, top: `${y}px`, width: `${bw}px`, height: `${bh}px` })
     bezel.className = 'st-bezel st-bezel--' + spec.finder
@@ -934,6 +967,7 @@ export function installCamera(e: Engine, ph: Physics, st: Studio, input: Input):
     fEl.hidden = !on
     st.rooms.locked = on
     hud.cameraButton.setAttribute('aria-pressed', String(on))
+    hud.el.querySelector('.st-pocketwrap')?.toggleAttribute('hidden', on)
     if (on) {
       if (!roll()) loadFilm()
       refreshUI()

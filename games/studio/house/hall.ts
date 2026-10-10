@@ -273,7 +273,7 @@ export function createHall(e: Engine, st: Studio): Hall {
 
   const api: Hall = {
     id: 'hall',
-    view: { kind: 'station', pos: new THREE.Vector3(-2.0, 1.62, -6.6), target: new THREE.Vector3(-2.6, 1.05, -0.6), fov: 55, yawLimitDeg: 180, pitchMinDeg: -40, pitchMaxDeg: 25 } as StationView,
+    view: { kind: 'station', pos: new THREE.Vector3(-1.4, 1.62, -5.4), target: new THREE.Vector3(-3.5, 1.05, -0.6), fov: 58, yawLimitDeg: 180, pitchMinDeg: -40, pitchMaxDeg: 25 } as StationView,
     ambientLux: () => 200 + 0.04 * e.sun().skyLux,
     fridgeGlow, printBoxGlow, marks,
     onPinned: null,

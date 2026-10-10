@@ -128,6 +128,9 @@ export function createHud(stage: HTMLElement): Hud {
 
 /** Position overview tags from projected anchors (called per frame). */
 export function placeTag(b: HTMLElement, x: number, y: number, visible: boolean): void {
+  const W = b.parentElement?.clientWidth ?? 1e4
+  const half = (b.offsetWidth || 110) / 2 + 6
+  x = Math.max(half, Math.min(W - half, x))
   b.style.transform = `translate(${Math.round(x)}px, ${Math.round(y)}px) translate(-50%, -50%)`
   b.style.visibility = visible ? 'visible' : 'hidden'
 }

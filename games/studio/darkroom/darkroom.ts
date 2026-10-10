@@ -77,7 +77,7 @@ export function createDarkroom(e: Engine, st: Studio): Darkroom {
   stripTex.colorSpace = THREE.SRGBColorSpace
   const lbMat = new THREE.MeshBasicMaterial({ map: stripTex, color: new THREE.Color(1, 1, 1) })
   const lightbox = new THREE.Mesh(new THREE.PlaneGeometry(1.3, 0.2), lbMat)
-  lightbox.position.set(-3.2, Y + 0.62, -3.08)
+  lightbox.position.set(-3.2, Y + 0.62, -3.07)
   lightbox.name = 'lightbox'
   root.add(lightbox)
   box(1.36, 0.26, 0.04, mat(0x2a2622), -3.2, Y + 0.62, -3.1, root)
@@ -276,6 +276,11 @@ export function createDarkroom(e: Engine, st: Studio): Darkroom {
       ${step === 'hung' ? `<dt>Lamp</dt><dd>${lampS.toFixed(1)} s · grade ${grade}</dd>` : ''}</dl>
       <div class="st-pencil">${hint}</div>`
     card.querySelector('dl')?.after(tempIn)
+    if (inTray || exposedPaper) {
+      printCanvas.className = 'st-trayprint'
+      card.appendChild(printCanvas)
+    }
+    hud.setPocket(house.pocket.length)
     bExpose.textContent = `Expose ${lampS.toFixed(1)} s`
     const items: HTMLElement[] = []
     if (step === 'idle') items.push(bLoad)
@@ -800,7 +805,7 @@ export function createDarkroom(e: Engine, st: Studio): Darkroom {
   })
 
   // ---------------------------------------------------------------- room module
-  const view: StationView = { kind: 'station', pos: new THREE.Vector3(-2.5, -0.92, -6.3), target: new THREE.Vector3(-2.45, -1.62, -3.4), fov: 55, yawLimitDeg: 20, pitchMinDeg: -20, pitchMaxDeg: 20 }
+  const view: StationView = { kind: 'station', pos: new THREE.Vector3(-2.55, -1.02, -5.15), target: new THREE.Vector3(-2.55, -1.72, -3.45), fov: 62, yawLimitDeg: 20, pitchMinDeg: -20, pitchMaxDeg: 20 }
   // restore developed negatives for the strip (newest roll)
   void (async () => {
     const ids = house.negatives.slice(0, 8)

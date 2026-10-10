@@ -48,7 +48,7 @@ export function createOverview(e: Engine, house: House, hud: Hud, rooms: () => R
         placeTag(hud.tags[id], (v.x * 0.5 + 0.5) * w, (1 - (v.y * 0.5 + 0.5)) * h, v.z < 1)
       }
       // the basement glow reads at a constant brightness on screen whatever the exposure
-      ;(house.basementGlow.material as THREE.MeshBasicMaterial).color.setRGB(1, 0.23, 0.11).multiplyScalar(0.45 / Math.max(1e-6, e.exposure))
+      ;(house.basementGlow.material as THREE.MeshBasicMaterial).color.setRGB(1, 0.16, 0.05).multiplyScalar(0.55 / Math.max(1e-6, e.exposure))
     },
     onPointer(ge, r) {
       if (ge.kind !== 'tap') return

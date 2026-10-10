@@ -1,0 +1,6 @@
+[
+  {"eval": "window.__game.whenReady()"},
+  {"eval": "(async () => { const g = window.__game; await g.goto('yard'); g.unlockAll(); g.build('box'); g.setTime(20.4); g.toy('lantern','knot',0.444); g.toy('lantern','push',[0.4,0.1]); g.placeTripod([6,12],0,89,0.4); g.settings({N:8,focusM:1.2}); const r = await g.shoot({bulbSeconds:20}); g.wind(); g.unload(); const d = await g.develop(); const p = await g.print(d.frames[0]); const px = await g.printPixels(p); await g.goto('darkroom'); return JSON.stringify({trail: r.subjects.find(s=>s.id==='lantern').extra.trailPx, px, ok: px.brightFrac >= 0.01 && px.mean < 0.35, e: g.errors()}) })()"},
+  {"wait": 1000},
+  {"shot": "shots/studio/lantern-darkroom.png"}
+]

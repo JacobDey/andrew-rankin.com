@@ -1,0 +1,13 @@
+[
+  { "eval": "__game.whenReady().then(() => 'ready')" },
+  { "eval": "document.documentElement.scrollWidth <= innerWidth" },
+  { "eval": "Math.round(document.querySelector('.hub-strip').getBoundingClientRect().bottom) <= innerHeight" },
+  { "eval": "window.scrollTo(0, 200)" },
+  { "wait": 1200 },
+  { "eval": "__game.state().active" },
+  { "shot": "shots/hub/smoke-m01-centre.png" },
+  { "eval": "(async () => { const ex = document.querySelector('.hub-exposed'); const mk = (x, y) => new Touch({ identifier: 1, target: ex, clientX: x, clientY: y }); const ev = (type, x, y) => ex.dispatchEvent(new TouchEvent(type, { touches: type === 'touchend' ? [] : [mk(x, y)], changedTouches: [mk(x, y)], bubbles: true, cancelable: true })); ev('touchstart', 200, 500); await new Promise((r) => setTimeout(r, 450)); ev('touchmove', 230, 470); await new Promise((r) => setTimeout(r, 250)); return JSON.stringify(__game.state().loupe) })()" },
+  { "shot": "shots/hub/smoke-m02-loupe.png" },
+  { "eval": "(() => { const ex = document.querySelector('.hub-exposed'); const t = new Touch({ identifier: 1, target: ex, clientX: 230, clientY: 470 }); ex.dispatchEvent(new TouchEvent('touchend', { touches: [], changedTouches: [t], bubbles: true, cancelable: true })); return JSON.stringify(__game.state().loupe) })()" },
+  { "eval": "JSON.stringify(__game.errors())" }
+]

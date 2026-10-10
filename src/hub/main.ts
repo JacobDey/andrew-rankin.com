@@ -418,6 +418,10 @@ async function boot(): Promise<void> {
     loupe.rebuild()
   }
   new ResizeObserver(() => relayout()).observe(ol)
+  // web fonts reflow the captions and the card: re-measure every mark when they land
+  if (card) new ResizeObserver(() => dictation?.layout()).observe(card)
+  document.fonts?.addEventListener?.('loadingdone', () => relayout())
+  void document.fonts?.ready.then(() => relayout())
   onThemeChange((t: Theme) => {
     if (t !== 'dark') setSafelight(false)
     loupe.rebuild()

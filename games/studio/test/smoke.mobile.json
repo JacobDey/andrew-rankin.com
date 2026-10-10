@@ -1,0 +1,11 @@
+[
+  {"eval": "window.__game.whenReady()"},
+  {"shot": "shots/studio/mobile-01-overview.png"},
+  {"eval": "window.__game.goto('yard')"},
+  {"eval": "(window.__game.setTime(17.5), window.__game.toy('swing','pull',0.5), window.__game.toy('sprinkler','on'), window.__game.view('yard-wide'), window.__game.step(1500), 1)"},
+  {"shot": "shots/studio/mobile-02-yard.png"},
+  {"eval": "(window.__game.unlockAll(), window.__game.build('box'), window.__game.placeTripod([3,-1],0,-5,1.3), window.__game.aim([3,1,7]), window.__game.settings({N:11,t:1/500,focusM:8}), window.__game.finder(true), 1)"},
+  {"wait": 600},
+  {"shot": "shots/studio/mobile-04-finder.png"},
+  {"eval": "(() => { const r = (s) => { const e = document.querySelector(s); if (!e) return null; const b = e.getBoundingClientRect(); return [Math.round(b.left), Math.round(b.top), Math.round(b.width), Math.round(b.height)] }; return JSON.stringify({sw: document.documentElement.scrollWidth, iw: innerWidth, cam: r('.st-cambtn'), shutter: r('.st-shutterbtn'), bezel: r('.st-bezel'), bar: r('.st-fbar'), focus: r('.st-focus')}) })()"}
+]

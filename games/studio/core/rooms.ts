@@ -125,7 +125,9 @@ export function createRooms(e: Engine, input: Input, fade: HTMLElement): Rooms {
     const r = rooms.get(api.current)
     if (!r) return
     poseOf(r.view, tp, tq)
-    const fov = r.view.fov
+    // portrait phones: widen the vertical field so the diorama and the stations still fit across
+    const k = Math.max(1, 0.75 / Math.max(0.2, e.eye.aspect))
+    const fov = (2 * Math.atan(Math.tan((r.view.fov * Math.PI) / 360) * k) * 180) / Math.PI
     if (tr) {
       tr.t += dt
       const u = Math.min(1, tr.t / tr.dur)

@@ -1,0 +1,22 @@
+[
+  { "eval": "__game.whenReady().then(() => 'ready')" },
+  { "eval": "JSON.stringify(__game.lintRegistry())" },
+  { "move": [720, 820] },
+  { "wait": 900 },
+  { "eval": "__game.state().active" },
+  { "shot": "shots/hub/smoke-01-hover.png" },
+  { "eval": "__game.loupeAt(380, 760)" },
+  { "wait": 500 },
+  { "shot": "shots/hub/smoke-02-loupe.png" },
+  { "eval": "__game.loupeAt(-1, -1); __game.setTheme('dark'); 'dark'" },
+  { "wait": 700 },
+  { "shot": "shots/hub/smoke-03-dark.png" },
+  { "eval": "__game.setTheme(null); JSON.stringify(__game.bench(3))" },
+  { "key": "Tab" }, { "key": "Tab" }, { "key": "Tab" }, { "key": "Tab" }, { "key": "Tab" }, { "key": "Tab" },
+  { "key": "ArrowRight" },
+  { "eval": "document.activeElement.textContent + ' | ' + __game.state().active" },
+  { "move": [720, 820] },
+  { "click": [720, 820] },
+  { "wait": 3000 },
+  { "eval": "location.pathname" }
+]

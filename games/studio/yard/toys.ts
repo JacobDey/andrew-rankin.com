@@ -410,9 +410,12 @@ export function createLantern(e: Engine): Lantern {
   e.scene.add(root)
   const GELS = [0xffd9a0, 0xff6a5a, 0x7dff8a]
   const lampMat = new THREE.MeshBasicMaterial({ color: new THREE.Color(GELS[0]).multiplyScalar(8) })
-  const ball = new THREE.Mesh(new THREE.SphereGeometry(0.05, 14, 10), lampMat)
+  // the glass globe (r 0.05 m, dim) around a small bright mantle (radiance P_lamp = 8 kcd/m²)
+  const ball = new THREE.Mesh(new THREE.SphereGeometry(0.05, 14, 10), new THREE.MeshBasicMaterial({ color: new THREE.Color(GELS[0]).multiplyScalar(0.05), transparent: true, opacity: 0.55, depthWrite: false }))
   ball.name = 'lantern-ball'
   root.add(ball)
+  const mantle = new THREE.Mesh(new THREE.SphereGeometry(0.016, 10, 8), lampMat)
+  ball.add(mantle)
   const cage = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.07, 0.16, 8, 1, true), new THREE.MeshStandardMaterial({ color: 0x2a2622, wireframe: true }))
   ball.add(cage)
   const light = new THREE.PointLight(GELS[0], 0.002, 0, 2)
@@ -508,6 +511,7 @@ export function createLantern(e: Engine): Lantern {
     setGel(i) {
       gel = i % GELS.length
       lampMat.color.set(GELS[gel]).multiplyScalar(8)
+      ;(ball.material as THREE.MeshBasicMaterial).color.set(GELS[gel]).multiplyScalar(0.05)
       light.color.set(GELS[gel])
     },
     pos,

@@ -180,3 +180,7 @@
   .st-dr { width: 200px; }
   .st-postcard { width: 100%; }
 }
+
+.st-trayprint { display: block; width: 100%; height: auto; margin-top: 8px; border-radius: 2px; box-shadow: 0 0 0 1px rgb(255 120 80 / 0.3); filter: sepia(0.6) hue-rotate(-30deg) saturate(1.6) brightness(0.8); }
+.st-dial[hidden] { display: none; }
+@media (max-width: 640px) { .st-tape { bottom: calc(150px + var(--st-safe-bottom)); } }

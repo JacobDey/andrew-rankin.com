@@ -1,0 +1,6 @@
+[
+  {"eval": "window.__game.whenReady()"},
+  {"eval": "window.__game.poster()"},
+  {"wait": 500},
+  {"shot": "shots/studio/studio-poster.png"}
+]

@@ -54,7 +54,7 @@ void main() {
   float mc = dot(d, uMoonDir);
   col += vec3(1.0, 0.97, 0.92) * uMoon * smoothstep(0.99988, 0.99993, mc);
   // below the horizon: dark ground haze
-  col = mix(col, uHorizon * 0.35 + night * 0.2, smoothstep(0.0, -0.08, d.y));
+  col = mix(col, uHorizon * 0.05 + night * 0.1, smoothstep(0.0, -0.08, d.y));
   gl_FragColor = vec4(col, 1.0);
   #include <tonemapping_fragment>
   #include <colorspace_fragment>
