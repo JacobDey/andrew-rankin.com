@@ -38,7 +38,7 @@ export function createBenchScreen(root: HTMLElement, app: App): BenchScreen {
     <div class="lb-bench-tank">
       <canvas class="lb-bench-canvas" aria-label="Optical bench: drag glass along the rail"></canvas>
       <div class="lb-gg" aria-hidden="true"><div class="lb-gg-view"></div><span class="lb-gg-label">ground glass</span></div>
-      <div class="lb-qnote" hidden></div>
+      <div class="lb-next"><div class="lb-qnote" hidden></div><button class="lb-chip primary lb-go" data-act="go">Camera ready? Go shoot on Lantern Street →</button></div>
       <div class="lb-bench-tools">
         <button class="lb-chip" data-act="light" title="Light: laser or white (L)">White light</button>
         <button class="lb-chip" data-act="field" title="Off-axis rays (F)">Off-axis</button>
@@ -304,8 +304,9 @@ export function createBenchScreen(root: HTMLElement, app: App): BenchScreen {
   }
 
   function drawSpot() {
-    const R = 46
-    const cx = cssW - R - 10, cy = cssH - R - 36
+    const narrow = cssW < 500
+    const R = narrow ? 32 : 46
+    const cx = cssW - R - 10, cy = narrow ? 128 + R : cssH - R - 36
     g.save()
     g.beginPath(); g.arc(cx, cy, R, 0, 6.3); g.fillStyle = '#05070a'; g.fill()
     g.strokeStyle = '#B8893A'; g.lineWidth = 2; g.stroke()
@@ -712,6 +713,9 @@ export function createBenchScreen(root: HTMLElement, app: App): BenchScreen {
     else if (a === 'collimate') doCollimate()
     else if (a === 'fit') { fit(); redraw() }
   })
+  root.querySelector('.lb-go')?.addEventListener('click', () => {
+    document.querySelector<HTMLElement>('.lb-tab[data-place="street"]')?.click()
+  })
   root.querySelector('.lb-share')?.addEventListener('click', (e) => {
     const a = (e.target as HTMLElement).dataset.act
     if (a === 'share') app.share()
@@ -774,7 +778,7 @@ export function createBenchScreen(root: HTMLElement, app: App): BenchScreen {
       const st = app.store.get()
       if (!st.progress.onboarded) {
         qnote.hidden = false
-        qnote.innerHTML = `<span class="lb-hand">No glass, no lies. — Q.</span><small>Drag the needle to open the pinhole.</small>`
+        qnote.innerHTML = `<span class="lb-hand">No glass, no lies. — Q.</span><small>Drag the needle to open the pinhole, or just go shoot: the tin already works.</small>`
       } else qnote.hidden = true
     },
     exit() { active = false; root.hidden = true; drag = null; app.gl.attachTo(null) },

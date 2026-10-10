@@ -336,7 +336,11 @@ export function createWetBench(ctx: Ctx, anchors: BenchAnchors): PlatesBench {
         movedWhileHeld = false
         if (p.ray.intersectPlane(plane, hitPlane)) heldTarget.copy(hitPlane)
         const id = heldId
-        drop(id, dropTargetAt(heldTarget.x, heldTarget.z))
+        // forgiving: a tap that lands on a tray (or its rim) always drops into that tray
+        ray.ray.copy(p.ray)
+        let tgt: Where | null = null
+        for (const b of BATHS) { if (ray.intersectObject(trayOf(b).group, true).length) { tgt = { kind: 'tray', bath: b }; break } }
+        drop(id, tgt ?? dropTargetAt(heldTarget.x, heldTarget.z))
         return true
       }
       if (p.kind === 'up') return true

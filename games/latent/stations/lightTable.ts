@@ -223,6 +223,15 @@ export function createLightTableStation(app: App, hooks: LightTableHooks): Stati
         const hov = frameRects.find((f) => hit(f.r, loupe.x, loupe.y))
         if (hov && loupe.on) crispText(g, `R${hov.ref.roll} F${hov.ref.frame}`, loupe.x + 70, loupe.y - 70, 11, ink)
       } else crispText(g, 'Nothing developed yet. Send a cassette to the tank.', table.x + 20, table.y + 40, 14, ink, { font: 'ui' })
+      // what to do next, in plain words
+      const hint = selFrame ? 'Send the frame to the carrier, then go to the DARKROOM and press Expose.'
+        : selCass && !rollDeveloped(selCass) ? 'Send it to the tank, then go to the DARKROOM: open the bag and wind the film.'
+        : showRollId ? 'Tap a frame to pick it for printing. Hold your finger or mouse over one for the loupe.' : 'Tap a cassette in the carton to pick a roll to develop.'
+      const per = Math.max(20, Math.floor((table.w - 32) / 8.6))
+      const words = hint.split(' '); const lines: string[] = []; let cur = ''
+      for (const wd of words) { if (cur && (cur + ' ' + wd).length > per) { lines.push(cur); cur = wd } else cur = cur ? cur + ' ' + wd : wd }
+      if (cur) lines.push(cur)
+      lines.forEach((ln, i) => crispText(g, ln, table.x + 16, table.y + 150 + i * 17, 14, ink, { weight: 700 }))
     },
     pointer(p: GamePointer) {
       const lift = p.pointerType === 'touch' ? 72 : 0

@@ -53,6 +53,18 @@ export function createTerminalStation(app: App, hooks: TerminalHooks): Station &
   const controls = document.createElement('div')
   controls.className = 'li-term-controls'
   controls.append(input, sr)
+  // phone only: visible buttons, since there is no Enter key until the keyboard is up
+  const pbar = document.createElement('div')
+  pbar.style.cssText = 'position:absolute;display:none;gap:8px;z-index:2'
+  const pbtn = (label: string, fn: () => void, primary = false): HTMLButtonElement => {
+    const b = document.createElement('button'); b.type = 'button'; b.className = `li-chip${primary ? ' li-primary' : ''}`; b.textContent = label
+    b.addEventListener('click', (e) => { e.preventDefault(); fn() }); return b
+  }
+  const bSearch = pbtn('SEARCH', () => { finishBoot(); submit() }, true)
+  const bKeys = pbtn('KEYBOARD', () => { finishBoot(); input.focus({ preventScroll: true }) })
+  const bBack = pbtn('BACK', () => back())
+  pbar.append(bSearch, bKeys, bBack)
+  controls.append(pbar)
 
   const fs = () => Math.round((phone ? 14 : 15) * S.save.settings.textSize)
   const lh = () => Math.round(fs() * 1.4)
@@ -157,7 +169,9 @@ export function createTerminalStation(app: App, hooks: TerminalHooks): Station &
     if (phone) {
       crt = { x: 8, y: 8, w: w - 16, h: Math.round(h * 0.76) }
       tapeR = { x: 12, y: crt.y + crt.h + 10, w: w - 24, h: h - crt.h - 26 }
+      pbar.style.display = 'flex'; pbar.style.left = `${crt.x + 14}px`; pbar.style.top = `${crt.y + crt.h - 58}px`
     } else {
+      pbar.style.display = 'none'
       crt = { x: 24, y: 20, w: Math.round(w * 0.62) - 24, h: h - 40 }
       tapeR = { x: crt.x + crt.w + 40, y: 30, w: Math.min(300, w - crt.x - crt.w - 64), h: Math.round(h * 0.6) }
     }
@@ -179,6 +193,7 @@ export function createTerminalStation(app: App, hooks: TerminalHooks): Station &
     update(dt) {
       if (mode === 'boot') { bootT += dt; if (bootDone()) finishBoot() }
       caret += dt
+      if (phone) { bBack.hidden = mode === 'search' && !result || mode === 'boot'; bSearch.hidden = mode === 'doc' }
     },
     resize(W, H, ph) { w = W; h = H; phone = ph; layout() },
     drawLum(g) {

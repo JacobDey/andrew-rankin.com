@@ -143,7 +143,7 @@
 .st-ticker[hidden] { display: none; }
 
 /* darkroom readouts */
-.st-dr { position: absolute; left: calc(12px + var(--st-safe-left)); top: calc(12px + var(--st-safe-top)); width: 250px; background: rgb(28 12 8 / 0.82); color: #ffb08a; border: 1px solid rgb(255 120 80 / 0.3); }
+.st-dr { position: absolute; left: calc(12px + var(--st-safe-left)); top: calc(64px + var(--st-safe-top)); width: 250px; background: rgb(28 12 8 / 0.82); color: #ffb08a; border: 1px solid rgb(255 120 80 / 0.3); }
 .st-dr h3 { color: #ff9a6a; }
 .st-dr dt { color: #c97a5a; }
 .st-dr .st-pencil { color: #ffc8a8; }
@@ -177,7 +177,8 @@
   .st-dial-val { min-width: 54px; font-size: 15px; }
   .st-focus { top: 18%; bottom: 168px; }
   .st-strip { max-width: calc(100% - 24px); top: calc(64px + var(--st-safe-top)); }
-  .st-dr { width: 200px; }
+  .st-dr { width: 200px; top: calc(150px + var(--st-safe-top)); }
+  .st-hud:has(.st-tray:not(:empty)) .st-tape { bottom: calc(262px + var(--st-safe-bottom)); }
   .st-postcard { width: 100%; }
 }
 
@@ -189,3 +190,7 @@
 .st-hud--finder .st-chipwrap, .st-hud--finder .st-pocketwrap, .st-hud--finder .st-housebtn, .st-hud--finder .st-bulb, .st-hud--finder .st-cambtn { display: none !important; }
 .st-hud--finder .st-tape { bottom: calc(96px + var(--st-safe-bottom)); left: calc(70px + var(--st-safe-left)); }
 @media (max-width: 640px) { .st-hud--finder .st-tape { bottom: calc(190px + var(--st-safe-bottom)); left: 12px; } }
+
+.st-cambtn--pulse { animation: st-cam-pulse 1.6s ease-in-out infinite; }
+@keyframes st-cam-pulse { 50% { box-shadow: 0 0 0 6px rgb(120 203 151 / 0.55); } }
+@media (prefers-reduced-motion: reduce) { .st-cambtn--pulse { animation: none; box-shadow: 0 0 0 4px rgb(120 203 151 / 0.55); } }

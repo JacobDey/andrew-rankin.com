@@ -29,8 +29,10 @@ export function installOnboarding(e: Engine, st: Studio, p: { camera: CameraApi;
   const stepNote = () => {
     if (!tut.shot) {
       yard.stumpGlow.pulse(true)
-      if (rooms.current === 'yard') hud.note(NOTES.pinhole, 0)
+      if (rooms.current === 'yard') hud.note(hud.el.classList.contains('st-hud--finder') ? NOTES.pinhole : NOTES.start, 0)
+      hud.cameraButton.classList.add('st-cambtn--pulse')
     } else yard.stumpGlow.pulse(false)
+    if (tut.shot) hud.cameraButton.classList.remove('st-cambtn--pulse')
     if (tut.shot && !tut.developed) {
       yard.doorGlow.pulse(true)
       hud.tags.darkroom.classList.add('st-tag--pulse')
@@ -70,8 +72,11 @@ export function installOnboarding(e: Engine, st: Studio, p: { camera: CameraApi;
     if (to === 'darkroom' && !tut.tankNote) {
       hud.note(NOTES.tank, 6000)
       done('tankNote')
-    } else if (to === 'yard' && !tut.shot) hud.note(NOTES.pinhole, 0)
+    } else if (to === 'yard' && !tut.shot) hud.note(NOTES.start, 0)
     else if (to === 'hall' && tut.printed && !tut.pinned) hud.note(NOTES.fridge, 6000)
   })
+  new MutationObserver(() => {
+    if (!tut.shot && rooms.current === 'yard') hud.note(hud.el.classList.contains('st-hud--finder') ? NOTES.pinhole : NOTES.start, 0)
+  }).observe(hud.el, { attributes: true, attributeFilter: ['class'] })
   stepNote()
 }

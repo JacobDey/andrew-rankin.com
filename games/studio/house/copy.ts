@@ -24,6 +24,7 @@ export const UNLOCKS: Record<string, { parts: string[]; label: string }> = {
 }
 
 export const NOTES = {
+  start: 'Tap the camera. Then hold the big button for 15 seconds.',
   pinhole: 'open · count to 15 · close',
   box: 'Sun? f/16 at 1/ISO.',
   ground: "Yes, it's upside down.",

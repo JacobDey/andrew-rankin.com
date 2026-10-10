@@ -207,7 +207,7 @@ export async function createApp(deps: AppDeps): Promise<PlatesApp> {
     if (e.to.kind === 'tray' && e.to.bath === 'dev') {
       if (!taught.has(`dev:${e.id}`)) { taught.add(`dev:${e.id}`); autopin() }
       if (rig.tray !== 'dev' && !test) void app.focusTray('dev')
-    }
+    } else if (e.to.kind === 'tray' && rig.tray && rig.tray !== e.to.bath && !test) void app.focusTray(e.to.bath)
   })
   bus.on('plateFixed', (e) => {
     book.onPlateFixed(e.id)
@@ -270,7 +270,7 @@ export async function createApp(deps: AppDeps): Promise<PlatesApp> {
   hud.onBackTray = () => { void app.focusTray(null) }
   hud.onTray = (b) => { void app.focusTray(b) }
   hud.onBook = () => openBook()
-  function openBook(page?: 'persons' | 'findings' | 'sector' | 'documents'): void { if (table.isOpen) table.close(); screen = 'book'; hud.setWax(false); book.open(page) }
+  function openBook(page?: 'persons' | 'findings' | 'sector' | 'documents'): void { taught.add('booked'); if (table.isOpen) table.close(); screen = 'book'; hud.setWax(false); book.open(page) }
 
   // ---------------------------------------------------------------- lamp actions
   function pullWindow(): void {
@@ -321,7 +321,7 @@ export async function createApp(deps: AppDeps): Promise<PlatesApp> {
       if (h2 && p.kind === 'tap' && !bench.held()) {
         if (h2.object.userData.kind === 'book') { openBook(); return }
         if (h2.object.userData.kind === 'table' && paneInHand) { void app.inspect('pane'); return }
-        if (h2.object.userData.kind === 'table') { const on = PLATE_IDS.find((id) => bench.where(id).kind === 'table'); if (on) { void app.inspect(on); return } }
+        if (h2.object.userData.kind === 'table') { const on = PLATE_IDS.find((id) => bench.where(id).kind === 'table') ?? [...PLATE_IDS].reverse().find((id) => bench.where(id).kind === 'rack' && bench.chem(id).fixed); if (on) { void app.inspect(on); return } }
       }
     }
     if (lampDrag) {
@@ -433,6 +433,28 @@ export async function createApp(deps: AppDeps): Promise<PlatesApp> {
   new ResizeObserver(() => { clearTimeout(resizeT); resizeT = window.setTimeout(resize, test ? 0 : 120) }).observe(root)
   resize()
 
+  // one next-step line for a first-time player, walking the whole loop (tin, developer, water, hypo, rack, table, Return)
+  function guide(): string {
+    const st = rig.station, tr = rig.tray
+    if (!bench.opened.has(1)) return st === 'shelf' ? 'Tap the tin to open the first bundle.' : 'The tin is on the Shelf. Tap Shelf below.'
+    const inBath = (b: Bath) => PLATE_IDS.find((id) => { const w = bench.where(id); return w.kind === 'tray' && w.bath === b }) ?? null
+    const dev = inBath('dev'), wat = inBath('water'), hyp = inBath('hypo')
+    if (bench.held()) return st === 'trays' || tr ? 'Plate in hand. Tap the left tray (developer) to lay it in.' : 'Plate in hand. Tap Trays below, then tap the left tray.'
+    const here = dev ? 'dev' : wat ? 'water' : hyp ? 'hypo' : null
+    if (here && tr && tr !== here) return `The plate is in the ${here === 'dev' ? 'developer' : here} tray. Tap ${here.toUpperCase()} below.`
+    if (dev) {
+      if (!taught.has('rock')) return tr === 'dev' ? 'Drag across the tray to rock the developer. Stop when the eighth square shows.' : 'Tap the left tray to lean over it, then drag to rock it.'
+      return 'Keep rocking until the picture and eight squares show. Then double-tap the plate to move it to the water.'
+    }
+    if (wat) return 'Rinse a moment. Double-tap the plate to move it to the hypo (fixer).'
+    if (hyp) return bench.chem(hyp).fixed ? 'Fixed. Double-tap the plate to put it on the rack.' : 'Hold it in the hypo until the milk clears. Fixing is slow; tap the tray to stir.'
+    if (PLATE_IDS.some((id) => bench.where(id).kind === 'bench' && !bench.chem(id).fixed)) return 'The plate is loose on the bench. Tap it to pick it up, then tap a tray.'
+    const onRack = PLATE_IDS.find((id) => bench.where(id).kind === 'rack')
+    if (onRack && !taught.has('viewed')) return st === 'table' ? 'Tap the plate on the rack, or the light table, to look at it closely.' : 'The plate is on the rack. Tap Table below to look at it.'
+    if (taught.has('viewed') && !taught.has('booked')) return 'Open the Return (bottom right) to record what you found.'
+    if (!PLATE_IDS.some((id) => bench.where(id).kind !== 'tin' && bench.where(id).kind !== 'camera')) return st === 'shelf' ? 'Tap the tin again to take a plate.' : 'More plates are in the tin on the Shelf.'
+    return ''
+  }
   // ---------------------------------------------------------------- frame
   let last = performance.now()
   function frame(dtReal: number): void {
@@ -462,10 +484,8 @@ export async function createApp(deps: AppDeps): Promise<PlatesApp> {
     } else hud.ghost(0, 0, false)
     {
       let msg = ''
-      if (!test && screen === 'bench' && !table.isOpen && !book.isOpen) {
-        if (!bench.opened.has(1)) msg = rig.station === 'shelf' ? 'Tap the tin to open the first bundle.' : 'The tin is on the Shelf. Tap Shelf below.'
-        else if (!taught.has('rock')) msg = rig.tray === 'dev' && bench.where('p00').kind === 'tray' ? 'Drag across the tray to rock the developer. Stop when the eighth square shows.' : 'Click a plate in the tin, then click the left tray to lay it in the developer.'
-      }
+      if (!test && screen === 'bench' && !table.isOpen && !book.isOpen) msg = guide()
+      hintEl.style.bottom = rig.tray && portrait() ? '126px' : ''
       if (hintMsg !== msg) { hintMsg = msg; hintEl.textContent = msg; hintEl.hidden = !msg }
     }
     // render
@@ -523,7 +543,7 @@ export async function createApp(deps: AppDeps): Promise<PlatesApp> {
       if (id === null) { table.close(); screen = 'bench'; checkFinal(); return }
       if (id !== 'pane') { const w = bench.where(id).kind; if (w !== 'table' && w !== 'rack') bench.place(id, { kind: 'table' }); await lib.expose(id, renderer, deps.quality) }
       if (book.isOpen) book.close()
-      screen = 'inspect'
+      screen = 'inspect'; if (id !== 'pane') taught.add('viewed')
       if (table.showing !== id) table.open(id)
       if (o) table.set(o)
       updateLight()

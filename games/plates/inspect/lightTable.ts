@@ -114,6 +114,7 @@ export function createLightTable(ctx: Ctx, bench: PlatesBench, root?: HTMLElemen
     <button class="pl-velvet-tab" type="button" aria-label="Velvet: drag across the plate">VELVET</button>
     <div class="pl-table-cap"><div class="pl-cap-title"></div><div class="pl-cap-when"></div><div class="pl-cap-grade"></div></div>
     <div class="pl-register" hidden><p></p></div>
+    <div class="pl-table-hint">Compare the two eyes: drag the VELVET tab across the glass, or press Wiggle. Loupe magnifies. Cite files a plate in the Return.</div>
     <div class="pl-table-bar" role="toolbar" aria-label="Light table">
       <button type="button" data-a="back" aria-label="Back to the bench">‹ Back</button>
       <span class="pl-eyes" role="group" aria-label="Eye"><button type="button" data-a="L">L</button><button type="button" data-a="both">Both</button><button type="button" data-a="R">R</button></span>
@@ -137,6 +138,7 @@ export function createLightTable(ctx: Ctx, bench: PlatesBench, root?: HTMLElemen
 
   const portrait = () => { const r = renderer.domElement.getBoundingClientRect(); return r.height > r.width * 1.1 }
   function layout(): void {
+    const hintEl = ui.querySelector('.pl-table-hint') as HTMLElement | null; if (hintEl) { const bh = bar.offsetHeight; hintEl.style.bottom = `${(bh || 62) + 6}px`; hintEl.hidden = showing === 'pane' }
     const c = renderer.domElement.getBoundingClientRect()
     const W = c.width, H = c.height, barH = 64, topH = 8
     const eye = opts.wiggle ? (wigglePhase ? 'R' : 'L') : (opts.eye === 'both' && portrait() ? 'L' : opts.eye)
@@ -165,7 +167,7 @@ export function createLightTable(ctx: Ctx, bench: PlatesBench, root?: HTMLElemen
     uniforms.uRegion.value.set(region.x, region.y, region.w, region.h)
     const vx = rectCss.x + rectCss.w * opts.velvet
     uniforms.uVelvet.value = (opts.velvet <= 0 ? -100 : opts.velvet >= 1 ? 1e5 : vx) * dpr
-    tab.style.left = `${Math.max(0, opts.velvet <= 0 ? 0 : vx - 4)}px`
+    tab.style.left = `${Math.max(34, opts.velvet <= 0 ? 0 : vx - 4)}px`
     tab.style.top = `${rectCss.y + rectCss.h * 0.5}px`
     const L = currentLoupe()
     uniforms.uLoupeOn.value = L ? 1 : 0

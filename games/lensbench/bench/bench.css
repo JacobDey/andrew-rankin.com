@@ -6,7 +6,8 @@
 .lb-gg { position: absolute; top: 10px; right: 10px; width: clamp(140px, 26%, 240px); aspect-ratio: 3 / 2; border: 3px solid var(--lb-anodize); border-radius: 4px; background: #0a0a0a; box-shadow: 0 6px 16px rgba(0,0,0,.6); pointer-events: none; }
 .lb-gg-view { position: absolute; inset: 0; }
 .lb-gg-label { position: absolute; left: 6px; bottom: -18px; font: 600 9px var(--lb-engr); letter-spacing: .14em; text-transform: uppercase; color: #b9ab95; }
-.lb-qnote { position: absolute; left: 16px; top: 14px; display: flex; flex-direction: column; gap: 2px; background: var(--lb-manila); color: #2b2216; padding: 8px 12px; border-radius: 3px; transform: rotate(-2deg); box-shadow: 0 4px 10px rgba(0,0,0,.45); font-size: 17px; max-width: 60%; }
+.lb-next { position: absolute; left: 16px; top: 14px; display: flex; flex-direction: column; align-items: flex-start; gap: 10px; max-width: 60%; }
+.lb-qnote { position: relative; display: flex; flex-direction: column; gap: 2px; background: var(--lb-manila); color: #2b2216; padding: 8px 12px; border-radius: 3px; transform: rotate(-2deg); box-shadow: 0 4px 10px rgba(0,0,0,.45); font-size: 17px; }
 .lb-qnote small { font: 11px var(--ar-font-ui, sans-serif); opacity: .75; }
 .lb-qnote[hidden] { display: none; }
 .lb-bench-tools { position: absolute; left: 10px; bottom: 34px; display: flex; gap: 6px; flex-wrap: wrap; }
@@ -57,5 +58,7 @@
   .lb-gg { width: 120px; height: 80px; aspect-ratio: auto; }
   .lb-tray { grid-column: 1; grid-row: 2; margin: 6px; min-height: 76px; }
   .lb-spec { grid-column: 1; grid-row: 3; overflow: visible; }
-  .lb-qnote { max-width: 55%; font-size: 15px; }
+  .lb-next { max-width: calc(100% - 150px); left: 10px; top: 10px; }
+  .lb-qnote { font-size: 14px; }
+  .lb-go { white-space: normal; text-align: left; line-height: 1.2; padding: 6px 12px; }
 }

@@ -102,7 +102,7 @@ export function createDarkroomStation(app: App, ps: PrintSession, film: FilmProc
       f.append(chip('+15 s', () => { film.setDial(film.dial + 15); app.sfx('latent.timer-tick'); rebuild() }, { key: '↑' }))
       f.append(chip('Pour', () => { if (film.pour()) { app.sfx('latent.glug'); rebuild() } }, { key: 'Enter', cls: 'li-primary' }))
     } else if (film.phase === 'dev') {
-      f.append(chip('Invert', invert, { key: 'I' }), chip('Rap', rap, { key: 'R' }), chip('Pour out', pourOut, { key: 'Enter', cls: 'li-primary' }))
+      f.append(chip('Invert', invert, { key: 'I' }), chip('Rap', rap, { key: 'R' }), chip('Pour out', pourOut, { key: 'Enter', cls: film.elapsed >= film.dial ? 'li-primary' : '' }))
     }
     // enlarger pane
     const e = paneCtl[1]
@@ -127,14 +127,42 @@ export function createDarkroomStation(app: App, ps: PrintSession, film: FilmProc
     t.innerHTML = ''
     const s = ps.sheet
     if (s && s.where !== 'easel') {
-      t.append(chip('→ STOP', () => toTray('stop')), chip('→ FIX', () => toTray('fix')))
+      const ph = trayPhase()
+      t.append(chip('→ STOP', () => toTray('stop'), { cls: ph === 'toStop' ? 'li-primary' : '' }), chip('→ FIX', () => toTray('fix'), { cls: ph === 'toFix' ? 'li-primary' : '' }))
       if (s.where === 'fix') t.append(chip(s.F >= 1 ? 'Hang it' : `Fixing ${Math.round(s.F * 100)}%`, () => { if (s.F >= 1) hooks.hang() }, { key: 'H', cls: s.F >= 1 ? 'li-primary' : 'li-dim' }))
     } else {
-      const p = document.createElement('p'); p.className = 'li-note'; p.textContent = 'Drag the tray to rock it. W/S pitch, Q/E roll.'
+      const p = document.createElement('p'); p.className = 'li-note'; p.textContent = S.save.flags.A && !S.save.stats.searches ? 'Print hung. Next: open the TERMINAL on the rail (key 1) and search the records.' : 'Drag the tray to rock it. W/S pitch, Q/E roll.'
       t.append(p)
     }
     tabs.querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', String(Number((b as HTMLElement).dataset.pane) === pane)))
     layoutCtl()
+  }
+
+  /** Where the sheet is in the dev, stop, fix routine: drives the next-step chip and hint line. */
+  function trayPhase(): string {
+    const s = ps.sheet
+    if (!s || s.where === 'easel') return 'none'
+    if (s.where === 'dev') return s.devTime >= 5 ? 'toStop' : 'rock'
+    if (s.where === 'stop') return s.act < 0.5 ? 'toFix' : 'stopping'
+    return s.F >= 1 ? 'hang' : 'fixing'
+  }
+  function trayHint(): string {
+    switch (trayPhase()) {
+      case 'rock': return 'Rock the tray (drag it, or W S Q E). Watch the image come up.'
+      case 'toStop': return 'The image is up. Move the print to STOP.'
+      case 'stopping': return 'Stopping the developer.'
+      case 'toFix': return 'Now move it to FIX so the image stays.'
+      case 'fixing': return 'Fixing. Keep the white light off.'
+      case 'hang': return 'Fixed. Press Hang it, then look at the drying line.'
+      default: return ''
+    }
+  }
+  let lastPhase = ''
+  function wrapChars(text: string, n: number): string[] {
+    const out: string[] = []; let cur = ''
+    for (const wd of text.split(' ')) { if (cur && (cur + ' ' + wd).length > n) { out.push(cur); cur = wd } else cur = cur ? cur + ' ' + wd : wd }
+    if (cur) out.push(cur)
+    return out
   }
 
   function layoutCtl(): void {
@@ -231,7 +259,7 @@ export function createDarkroomStation(app: App, ps: PrintSession, film: FilmProc
   // ---------- layout ----------
   function layout(): void {
     if (phone) {
-      for (let i = 0; i < 3; i++) panes[i] = i === pane ? { x: 0, y: 0, w, h } : { x: -9999, y: 0, w, h }
+      for (let i = 0; i < 3; i++) panes[i] = i === pane ? { x: 0, y: i === 0 ? 100 : 0, w, h: i === 0 ? h - 100 : h } : { x: -9999, y: 0, w, h }
     } else {
       const a = Math.round(w * 0.26), b = Math.round(w * 0.38)
       panes[0] = { x: 0, y: 0, w: a, h }; panes[1] = { x: a, y: 0, w: b, h }; panes[2] = { x: a + b, y: 0, w: w - a - b, h }
@@ -250,7 +278,7 @@ export function createDarkroomStation(app: App, ps: PrintSession, film: FilmProc
     chainReset()
     const T = panes[2]
     const tw = Math.min(T.w - 30, ((T.h - ctlH - 150) * 4) / 3)
-    bigTray = { x: T.x + (T.w - tw) / 2, y: T.y + (phone ? 50 : 26), w: tw, h: (tw * 3) / 4 }
+    bigTray = { x: T.x + (T.w - tw) / 2, y: T.y + (phone ? 72 : 26), w: tw, h: (tw * 3) / 4 }
     const sw = Math.min(110, (T.w - 40) / 3)
     ;(['dev', 'stop', 'fix'] as TrayId[]).forEach((id, i) => { small[id] = { x: T.x + (T.w - sw * 3 - 20) / 2 + i * (sw + 10), y: bigTray.y + bigTray.h + 26, w: sw, h: sw * 0.62 } })
     const F = panes[0]
@@ -290,7 +318,7 @@ export function createDarkroomStation(app: App, ps: PrintSession, film: FilmProc
       const hC = fl.h[k]
       const hx = fl.h[gj * nx + Math.min(nx - 1, gi + 1)] - fl.h[gj * nx + Math.max(0, gi - 1)]
       const hy = fl.h[Math.min(ny - 1, gj + 1) * nx + gi] - fl.h[Math.max(0, gj - 1) * nx + gi]
-      let v = 0.96 // tray floor (white enamel)
+      let v = 0.2 // tray floor (dark enamel under the liquid)
       if (inThis) {
         const px = (tx + hx * 0.6 - s!.x) / 0.254 + 0.5, py = (ty + hy * 0.6 - s!.y) / 0.203 + 0.5
         if (px >= 0 && px < 1 && py >= 0 && py < 1) {
@@ -387,6 +415,8 @@ export function createDarkroomStation(app: App, ps: PrintSession, film: FilmProc
       if (ps.sheet?.where === 'dev') app.loop('latent.cluster', { rho01: ps.rhoHint }); else app.stopLoop('latent.cluster')
       if (r.legibleNow) { hooks.legible(); rebuild() }
       const s = ps.sheet
+      const phNow = trayPhase()
+      if (phNow !== lastPhase) { lastPhase = phNow; rebuild() }
       uiAcc += dt
       if (uiAcc > 0.5) { uiAcc = 0; if ((s && s.where === 'fix' && s.F < 1) || film.phase === 'dev') rebuild() }
       // tray tok when the tilt comes back through rest fast
@@ -525,7 +555,7 @@ export function createDarkroomStation(app: App, ps: PrintSession, film: FilmProc
         g.fillStyle = 'rgba(125,255,154,0.06)'
         g.beginPath(); g.arc(w / 2 + Math.cos(a) * 30, h / 2 + Math.sin(a) * 30, 6, 0, Math.PI * 2); g.fill()
         g.fillStyle = 'rgba(125,255,154,0.05)'
-        crispText(g, film.bag === 'wind' ? `${film.k}/${film.target}` : film.bag === 'cap' ? 'SPACE' : film.bag === 'leader' ? '↓' : 'Q', w / 2, h / 2 + 70, 12, 'rgba(125,255,154,0.08)', { align: 'center' })
+        crispText(g, film.bag === 'wind' ? `WIND ${film.k}/${film.target}: TAP LEFT, RIGHT, LEFT...` : film.bag === 'cap' ? 'POP THE CAP' : film.bag === 'leader' ? 'PULL THE LEADER (3x)' : 'CLOSE THE TANK', w / 2, h / 2 + 70, 13, 'rgba(125,255,154,0.5)', { align: 'center' })
         return
       }
       if (l === 'off') {
@@ -557,7 +587,7 @@ export function createDarkroomStation(app: App, ps: PrintSession, film: FilmProc
         crispText(g, LABELS.tank[0], tank.x + tank.w / 2, tank.y + tank.h + 16, 10, light, { align: 'center' })
         if (film.phase === 'tank' || film.phase === 'dev') {
           crispText(g, film.phase === 'dev' ? `${fmtTime(film.elapsed)} / ${fmtTime(film.dial)}` : `DIAL ${fmtTime(film.dial)}`, tank.x + tank.w / 2, tank.y - 16, 14, light, { align: 'center', weight: 600 })
-          if (film.phase === 'dev') crispText(g, `INVERSIONS ${film.inversions}${film.rapped ? ' · RAPPED' : ''}`, tank.x + tank.w / 2, tank.y + tank.h + 32, 10, light, { align: 'center' })
+          if (film.phase === 'dev') crispText(g, `INVERSIONS ${film.inversions}${film.rapped ? ' · RAPPED' : ''}`, tank.x + tank.w / 2, tank.y + tank.h + 46, 10, light, { align: 'center' })
         }
         if (film.phase === 'shelf') crispText(g, `ROLL ${film.roll}`, F.x + 41, F.y + F.h * 0.52 - 36, 10, light, { align: 'center' })
         crispText(g, 'CHANGING BAG', bag.x + bag.w / 2, bag.y + bag.h + 16, 10, light, { align: 'center' })
@@ -570,6 +600,8 @@ export function createDarkroomStation(app: App, ps: PrintSession, film: FilmProc
           crispText(g, LABELS.trays[i], r.x + r.w / 2, r.y + r.h + 16, 13, light, { align: 'center', weight: 600 })
         }
         if (s && s.where !== 'easel') {
+          const hint = trayHint()
+          if (hint) { wrapChars(hint, Math.floor((T.w - 24) / 8)).forEach((ln, i) => crispText(g, ln, T.x + T.w / 2, small.dev.y + small.dev.h + 44 + i * 16, 13, RED, { align: 'center', weight: 600 })) }
           const label = s.where === 'dev' ? `DEV ${Math.floor(s.devTime)} s` : s.where === 'stop' ? 'STOP' : `FIX ${Math.round(s.F * 100)}%`
           crispText(g, label, bigTray.x, bigTray.y - 6, 13, light, { weight: 600 })
           if (s.F >= 1 && s.legible) {
