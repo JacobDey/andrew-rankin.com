@@ -88,7 +88,7 @@ export const GAMES: readonly GameInfo[] = [
     scheme: 'dark',
     accent: '#2E2C28',
     accentLit: '#E6DFCB',
-    status: 'developing',
+    status: 'ready',
   },
   {
     slug: 'latent',
@@ -107,7 +107,7 @@ export const GAMES: readonly GameInfo[] = [
     scheme: 'dark',
     accent: '#8A5E00',
     accentLit: '#E9B04A',
-    status: 'developing',
+    status: 'ready',
   },
   {
     slug: 'lensbench',
@@ -126,7 +126,7 @@ export const GAMES: readonly GameInfo[] = [
     scheme: 'auto',
     accent: '#5B3FA6',
     accentLit: '#AE97F2',
-    status: 'developing',
+    status: 'ready',
   },
   {
     slug: 'studio',
@@ -145,7 +145,7 @@ export const GAMES: readonly GameInfo[] = [
     scheme: 'auto',
     accent: '#2C7547',
     accentLit: '#78CB97',
-    status: 'developing',
+    status: 'ready',
     credit: "Frame 06 wasn't in the dictation. The friend holding the phone asked for it.",
   },
 ]
