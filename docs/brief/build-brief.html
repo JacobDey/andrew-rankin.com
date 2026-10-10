@@ -1,0 +1,274 @@
+<title>Rankin Roll 01 Build</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,750&family=Literata:opsz,wght@7..72,400;7..72,600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: a light table. One column of reading, a film strip of six frames you click to inspect, one usage chart. */
+:root {
+  --bg: #e7ecee;
+  --sheet: #f6f8f9;
+  --fg: #142029;
+  --muted: #586a74;
+  --line: #c9d3d8;
+  --cyan: #1c4c8c;
+  --amber: #a8640f;
+  --film: #1a1714;
+  --film-ink: #e9dcc4;
+  --ok: #2e7a4a;
+  --warn: #a8640f;
+  --display: "Bricolage Grotesque", "Arial Narrow", system-ui, sans-serif;
+  --body: "Literata", Georgia, "Times New Roman", serif;
+  --mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0c1317; --sheet: #121c22; --fg: #dbe5e9; --muted: #8b9ea8; --line: #24343d;
+    --cyan: #78a8e6; --amber: #e2a24c; --film: #050505; --film-ink: #e9dcc4; --ok: #6cc28d; --warn: #e2a24c;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0c1317; --sheet: #121c22; --fg: #dbe5e9; --muted: #8b9ea8; --line: #24343d;
+  --cyan: #78a8e6; --amber: #e2a24c; --film: #050505; --film-ink: #e9dcc4; --ok: #6cc28d; --warn: #e2a24c;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font: 17px/1.6 var(--body); padding-block: 40px 64px; padding-inline: 16px; }
+.wrap { max-width: 920px; margin: 0 auto; display: grid; gap: 44px; }
+h1, h2, h3 { font-family: var(--display); text-wrap: balance; margin: 0; line-height: 1.05; }
+h1 { font-size: clamp(40px, 8vw, 76px); font-weight: 750; letter-spacing: -0.02em; }
+h2 { font-size: 28px; font-weight: 750; }
+h3 { font-size: 20px; font-weight: 750; }
+p { margin: 0; max-width: 65ch; }
+a { color: var(--cyan); }
+a:focus-visible, button:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
+.label { font: 600 11px/1.3 var(--mono); letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+.lede { font-size: 20px; color: var(--fg); }
+header { display: grid; gap: 14px; }
+.links { display: flex; flex-wrap: wrap; gap: 10px 20px; font-family: var(--mono); font-size: 14px; }
+section { display: grid; gap: 18px; }
+
+/* Stats as an edge-print row, not tiles */
+.edge { display: flex; flex-wrap: wrap; gap: 0; border-block: 1px solid var(--line); }
+.edge div { flex: 1 1 140px; padding: 14px 16px 14px 0; display: grid; gap: 2px; }
+.edge b { font: 750 30px/1 var(--display); font-variant-numeric: tabular-nums; }
+.edge span { font: 12px/1.3 var(--mono); color: var(--muted); }
+
+/* Film strip */
+.strip { background: var(--film); padding: 22px 12px; border-radius: 4px; position: relative; overflow-x: auto; }
+.strip::before, .strip::after { content: ""; position: absolute; left: 0; right: 0; height: 9px;
+  background: repeating-linear-gradient(90deg, transparent 0 10px, color-mix(in srgb, var(--film-ink) 70%, transparent) 10px 20px); }
+.strip::before { top: 6px; } .strip::after { bottom: 6px; }
+.frames { display: grid; grid-template-columns: repeat(7, minmax(108px, 1fr)); gap: 8px; min-width: 780px; }
+.frame { all: unset; cursor: pointer; aspect-ratio: 3 / 2; border: 1px solid #3a332c; color: var(--film-ink); padding: 8px; display: grid; align-content: space-between;
+  font-family: var(--mono); font-size: 11px; background: #2a241f; transition: background .15s; }
+.frame strong { font: 750 15px/1.1 var(--display); }
+.frame:hover { background: #3a3129; }
+.frame[aria-selected="true"] { outline: 2px solid var(--amber); outline-offset: -2px; background: #3a3129; }
+.frame .n { color: var(--amber); }
+.detail { background: var(--sheet); border: 1px solid var(--line); border-radius: 4px; padding: 22px; display: grid; gap: 14px; }
+.detail-head { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: baseline; justify-content: space-between; }
+.pill { font: 600 11px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; padding: 5px 8px; border-radius: 99px; border: 1px solid currentColor; }
+.pill.ok { color: var(--ok); } .pill.warn { color: var(--warn); }
+.cols { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.cols > div { min-width: 0; display: grid; gap: 8px; align-content: start; }
+ul { margin: 0; padding-left: 1.1em; display: grid; gap: 6px; }
+li { max-width: 60ch; }
+
+/* Phases */
+.phases { display: grid; gap: 0; border-top: 1px solid var(--line); }
+.phase { border-bottom: 1px solid var(--line); }
+.phase button { all: unset; cursor: pointer; width: 100%; display: grid; grid-template-columns: 7.5em 1fr auto; gap: 12px; padding: 14px 0; align-items: baseline; }
+.phase .t { font: 12px var(--mono); color: var(--muted); font-variant-numeric: tabular-nums; }
+.phase .nm { font: 750 18px/1.2 var(--display); }
+.phase .ag { font: 12px var(--mono); color: var(--muted); }
+.phase .body { padding: 0 0 16px 7.5em; display: grid; gap: 8px; }
+.phase .body p { color: var(--fg); }
+.phase.idle .nm { color: var(--muted); }
+
+/* Chart */
+.chart { background: var(--sheet); border: 1px solid var(--line); border-radius: 4px; padding: 16px 16px 10px; position: relative; }
+.chart svg { width: 100%; height: auto; display: block; overflow: visible; }
+.chart text { fill: var(--muted); font: 11px var(--mono); }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font: 12px var(--mono); color: var(--muted); }
+.sw { display: inline-block; width: 18px; height: 3px; vertical-align: middle; margin-right: 6px; }
+.tip { position: absolute; pointer-events: none; background: var(--fg); color: var(--bg); font: 12px/1.35 var(--mono); padding: 6px 8px; border-radius: 3px; white-space: nowrap; transform: translate(-50%, -110%); }
+.notes { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; }
+.notes div { display: grid; gap: 6px; align-content: start; }
+footer { font: 12px var(--mono); color: var(--muted); }
+@media (max-width: 640px) {
+  .cols { grid-template-columns: 1fr; }
+  .phase button { grid-template-columns: 1fr; gap: 2px; }
+  .phase .body { padding-left: 0; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="label">Build brief · Oct 9–10, 2026 · roll 01</div>
+    <h1>Andrew Rankin's minigames, built in one night</h1>
+    <p class="lede">Five ideas Andrew dictated while washing dishes, plus Jacob's studio idea, became six playable photography games and a contact-sheet hub. About 50 AI agents designed and built them, and the site deploys to Vercel on every push to <code>main</code>.</p>
+    <div class="links">
+      <a href="https://andrew-rankin.vercel.app" target="_blank" rel="noopener">andrew-rankin.vercel.app</a>
+      <a href="https://github.com/JacobDey/andrew-rankin.com" target="_blank" rel="noopener">github.com/JacobDey/andrew-rankin.com</a>
+    </div>
+  </header>
+
+  <div class="edge" aria-label="Build totals">
+    <div><b>6 + hub</b><span>games live, all marked ready</span></div>
+    <div><b>~77k</b><span>lines shipped (TS, CSS, HTML)</span></div>
+    <div><b>131k</b><span>words of design docs</span></div>
+    <div><b>~50</b><span>agents across 5 workflows</span></div>
+    <div><b>29%</b><span>weekly limit used at the end</span></div>
+  </div>
+
+  <section aria-labelledby="games-h">
+    <div class="label">Click a frame</div>
+    <h2 id="games-h">The contact sheet</h2>
+    <div class="strip"><div class="frames" role="tablist" id="frames"></div></div>
+    <div class="detail" role="tabpanel" id="detail" aria-live="polite"></div>
+  </section>
+
+  <section aria-labelledby="phases-h">
+    <div class="label">Times are Eastern · click a phase for detail</div>
+    <h2 id="phases-h">How the night went</h2>
+    <div class="phases" id="phases"></div>
+  </section>
+
+  <section aria-labelledby="burn-h">
+    <div class="label">Account usage, sampled every 2–10 minutes</div>
+    <h2 id="burn-h">How fast tokens burn</h2>
+    <p>You asked how fast it's possible to burn. The fastest stretch was the design panel plus the spikes: about 14 Opus agents at once took 37% of a 5-hour window and 9% of the weekly limit per hour. At that pace a 5-hour window is gone in under three hours. The meter covers the whole account, so other sessions running that night are in it too.</p>
+    <div class="chart">
+      <div class="legend"><span><i class="sw" style="background:var(--cyan)"></i>5-hour window %</span><span><i class="sw" style="background:var(--amber)"></i>weekly %</span></div>
+      <svg id="chart" viewBox="0 0 860 280" role="img" aria-label="Line chart of 5-hour and weekly usage from 1:40 pm to 12:30 am Eastern"></svg>
+      <div class="tip" id="tip" hidden></div>
+    </div>
+    <div class="notes">
+      <div><h3>Predictions ran hot</h3><p>The design phase was priced at 30% of a window and used 56%, a 1.9× over-run, because the spikes overlapped it. The budget ledger now raises the Opus multiplier for fan-outs.</p></div>
+      <div><h3>The three-hour flat line</h3><p>From about 4 pm to 7 pm almost nothing ran. The cloud sessions I requested never started, since they needed a click in the app. I withdrew them and ran the build locally instead.</p></div>
+      <div><h3>Cheap passes at the end</h3><p>After your note, the last two review passes used Sonnet at 2 agents a time. They fixed onboarding and phone layouts in all four unfinished games for about 7% of a window.</p></div>
+    </div>
+  </section>
+
+  <section aria-labelledby="open-h">
+    <h2 id="open-h">What's still rough</h2>
+    <ul>
+      <li>Nothing has been tested on a real phone or GPU. Every check ran in headless Chromium with software WebGL.</li>
+      <li>Nobody has listened to the 200 synthesized sounds.</li>
+      <li>Plates hasn't had a clue-legibility pass at each loupe power, and that check decides whether the mystery is fair.</li>
+      <li>The Studio makes about 420 draw calls against a 250 budget, so phones may stutter.</li>
+      <li>Most "should have" features were cut. Each game's leftovers are listed in <code>docs/build/</code> in the repo.</li>
+    </ul>
+  </section>
+
+  <footer>Written by Claude from the build logs, workflow journals and usage snapshots in this session.</footer>
+</div>
+
+<script>
+const GAMES = [
+  { n: '00', slug: '', name: 'The hub', sub: 'Roll 01 contact sheet', ok: true,
+    idea: 'The landing page is a contact sheet: film strips with edge printing, grease-pencil circles, a loupe, live previews, and the dictation reproduced as a typed card with red-pen corrections ("cyanotype!! nobody was poisoned").',
+    works: ['Six procedural previews that turn from black-and-white to colour on hover', 'Loupe on mouse and press-and-hold on touch', 'Real posters and share cards captured from each game', '404 page: "Frame not found"'],
+    open: ['Font payload a little over its 250 KB budget', 'Loupe polish needs a check on a real GPU'] },
+  { n: '01', slug: 'texturedle', name: 'Texturedle', sub: 'Guess the surface', ok: true,
+    idea: 'A daily guessing game. You get a macro view of a 3D surface (day one is a rusty mailbox) and probe it: tilt the camera ±5°, roll a marble across it, drag a fine cloth and a rough cloth over it.',
+    works: ['Daily loop, guesses, hints and share card', 'Marble physics and two cloths that drape over the heightfield', '10 procedural surface recipes'],
+    open: ['Recipes for days 11–30 aren\'t written yet', 'Long guess names get cut off on desktop'] },
+  { n: '02', slug: 'darkroom', name: 'Darkroom', sub: 'Silver and cyanotype', ok: true,
+    idea: 'The flagship physics toy. You start in the dark and pull the safelight chain. Paper develops only where the sloshing developer touches it, room light fogs it, and the enlarger and cyanotype bench are fully simulated.',
+    works: ['Shallow-water trays you tilt, rock and pour', 'Enlarger with 7 negatives, test strips, dodge and burn', 'Cyanotype: mix, coat, dry, contact print an imported PNG, wash, peroxide', 'Save states and a clothesline of prints'],
+    open: ['No drips or puddles drawn', 'Negatives 7–11 not built'] },
+  { n: '03', slug: 'plates', name: 'Ruby Sector', sub: '1-bit darkroom mystery', ok: true,
+    idea: 'The darkroom in the style of Return of the Obra Dinn. You develop glass plates from a lost expedition in dithered 1-bit and file what you deduce in a register. The story and every line of text are original.',
+    works: ['14 staged stereo plates and a light table with velvet and loupe', 'Wet bench: developer, water, hypo, rack', 'Step-by-step hints through the whole loop'],
+    open: ['Clue legibility not checked at each loupe power', 'Endings not walked by hand'] },
+  { n: '04', slug: 'latent', name: 'Latent Image', sub: 'Police story', ok: true,
+    idea: 'A non-linear police story in the vein of Sam Barlow\'s games. You search an evidence database by keyword and develop film rolls whose prints reveal new search terms.',
+    works: ['Terminal search with 43 documents', 'Changing bag, tank, enlarger and trays', 'Phone search buttons and a next-step hint line'],
+    open: ['Printing from the carrier to a keyword unlock not walked', 'Phone enlarger chips cover a label'] },
+  { n: '05', slug: 'lensbench', name: 'Lens Bench', sub: 'Build a camera', ok: true,
+    idea: 'Design a camera from real optics (format, focal length, aperture, shutter, film), take it to a 3D street, shoot, then develop and grade the photos. Depth of field, motion blur and grain come out of the physics.',
+    works: ['Optics and sun models pass their self-tests', 'Metered exposures land within 0.2 EV', 'Full loop: bench, street, tank, lightbox'],
+    open: ['Heart-shaped bokeh unverified on a real GPU', 'Scripted onboarding is simplified'] },
+  { n: '06', slug: 'studio', name: 'Sunny 16', sub: 'Jacob\'s studio', ok: true,
+    idea: 'Jacob\'s idea: a walkable physics-toy studio with a darkroom, a camera workshop and a backyard with a dog, sparrows, a swing and a sprinkler. Photos you take develop in the darkroom and go on the fridge.',
+    works: ['Dollhouse overview, yard, finder, shoot, darkroom, print box', 'Rapier physics toys in the yard', 'House saved to IndexedDB'],
+    open: ['About 420 draw calls against a 250 budget', 'Indoor walls reuse the outdoor siding texture'] },
+];
+
+const framesEl = document.getElementById('frames'), detailEl = document.getElementById('detail');
+function show(i) {
+  const g = GAMES[i];
+  [...framesEl.children].forEach((b, j) => b.setAttribute('aria-selected', j === i));
+  const url = 'https://andrew-rankin.vercel.app/' + (g.slug ? 'games/' + g.slug + '/' : '');
+  detailEl.innerHTML = `
+    <div class="detail-head"><div><div class="label">Frame ${g.n}</div><h3 style="font-size:26px">${g.name}</h3></div>
+    <span class="pill ${g.ok ? 'ok' : 'warn'}">${g.ok ? 'Ready' : 'Developing'}</span></div>
+    <p>${g.idea}</p>
+    <div class="cols"><div><div class="label">Works</div><ul>${g.works.map(x => `<li>${x}</li>`).join('')}</ul></div>
+    <div><div class="label">Still open</div><ul>${g.open.map(x => `<li>${x}</li>`).join('')}</ul></div></div>
+    <p><a href="${url}" target="_blank" rel="noopener">Open ${g.name} ↗</a></p>`;
+  try { localStorage.setItem('brief-frame', i); } catch (e) {}
+}
+GAMES.forEach((g, i) => {
+  const b = document.createElement('button');
+  b.className = 'frame'; b.setAttribute('role', 'tab'); b.id = 'f' + i;
+  b.innerHTML = `<span class="n">▸${g.n}</span><strong>${g.name}</strong><span>${g.sub}</span>`;
+  b.onclick = () => show(i);
+  framesEl.appendChild(b);
+});
+let start = 2; try { const s = +localStorage.getItem('brief-frame'); if (s >= 0 && s < GAMES.length && localStorage.getItem('brief-frame') !== null) start = s; } catch (e) {}
+show(start);
+
+const PHASES = [
+  { t: '1:15 pm', nm: 'Scaffold and deploy', ag: 'main loop', body: 'Vite multi-page app, a headless screenshot tool every agent shares, a public GitHub repo and a Vercel project wired to auto-deploy from main. Placeholder pages were live within 15 minutes.' },
+  { t: '1:16 pm', nm: 'Design panel', ag: '19 Opus', body: 'Three designers per game, each with a different lens (physics toy, game design, craft and authenticity), then one lead designer per game merged them into a final design doc. The two narrative games also got full story bibles. An architect wrote the shared-module APIs and a 32-task build plan. I skipped the planned critique round to save tokens.' },
+  { t: '1:40 pm', nm: 'Tech spikes', ag: '8 Opus', body: 'Working prototypes of the hardest systems: sloshing tray fluid, 1-bit dithering that doesn\'t swim, a physical camera renderer, cloth and marble on a heightfield, photochemistry, 30 procedural materials, procedural audio, and Rapier backyard physics. All 4.4M tokens of it became port source for the build.' },
+  { t: '4 pm', nm: 'Waiting on cloud sessions', ag: 'idle', idle: true, body: 'You asked for token-safe work in the cloud because RAM was running out. I requested three cloud sessions, but they never started. I found that out about three hours later, withdrew them, and switched to a local build with RAM limits (2 browsers, one dev server).' },
+  { t: '7:15 pm', nm: 'Build', ag: '3 Sonnet + 7 Opus', body: 'Sonnet agents ported the spikes into shared modules while Opus agents, at most four at once, built each game and the hub in the same working tree. Everything was done in 1 hour 45 minutes, with an auto-commit every 30 minutes whenever the production build passed.' },
+  { t: '10:45 pm', nm: 'Review pass', ag: '9 Sonnet', body: 'After you asked for small, cheap workflows, a first-time-player playtest and fix on desktop and phone. It fixed Darkroom\'s black opening screen, added poster modes to every game, captured real posters and share cards, and marked Darkroom and Texturedle ready.' },
+  { t: '12:20 am', nm: 'Fix pass', ag: '4 Sonnet', body: 'One agent each for Plates, Latent Image, Lens Bench and the Studio walked the core loop and fixed the worst blockers: missing next-step hints, a phone search with no submit button, overlaps. All four reported ready.' },
+];
+const phEl = document.getElementById('phases');
+PHASES.forEach((p, i) => {
+  const d = document.createElement('div'); d.className = 'phase' + (p.idle ? ' idle' : '');
+  d.innerHTML = `<button aria-expanded="false" aria-controls="pb${i}" id="ph${i}"><span class="t">${p.t}</span><span class="nm">${p.nm}</span><span class="ag">${p.ag}</span></button><div class="body" id="pb${i}" hidden><p>${p.body}</p></div>`;
+  const btn = d.querySelector('button'), body = d.querySelector('.body');
+  btn.onclick = () => { body.hidden = !body.hidden; btn.setAttribute('aria-expanded', !body.hidden); };
+  phEl.appendChild(d);
+});
+
+// Usage samples, UTC minutes from 17:00 on Oct 9. [min, fiveHour%, weekly%]
+const RAW = `17:16 14 4|17:40 23 7|17:44 26 7|17:48 28 8|17:52 31 9|17:56 34 9|18:00 36 10|18:04 38 11|18:08 40 11|18:12 41 11|18:18 43 12|18:20 0 12|18:27 3 12|18:35 4 13|18:43 6 13|18:51 9 14|18:58 11 14|19:06 14 15|19:14 17 16|19:30 19 17|19:40 20 17|20:00 21 17|20:30 21 17|21:00 21 17|21:30 21 17|22:01 22 17|22:21 23 18|22:51 24 18|23:11 27 19|23:21 0 19|23:31 1 19|23:41 2 20|23:51 5 21|24:01 8 21|24:11 12 22|24:21 14 23|24:31 18 24|24:41 20 24|24:51 22 25|25:01 24 26|25:11 25 26|25:21 26 26|26:51 26 26|27:01 28 27|27:11 30 27|27:31 31 27|27:41 32 28|28:01 33 28|28:11 34 28|28:21 0 29|28:31 2 29|28:41 3 29|28:51 4 29`;
+const pts = RAW.split('|').map(s => { const [t, a, b] = s.split(' '); const [h, m] = t.split(':').map(Number); return { min: (h - 17) * 60 + m, h, m, five: +a, week: +b }; });
+const W = 860, H = 280, L = 36, R = 10, T = 12, B = 34, x0 = 0, x1 = 12 * 60;
+const X = m => L + (m - x0) / (x1 - x0) * (W - L - R), Y = v => T + (1 - v / 50) * (H - T - B);
+const svg = document.getElementById('chart'), NS = 'http://www.w3.org/2000/svg';
+const el = (n, a) => { const e = document.createElementNS(NS, n); for (const k in a) e.setAttribute(k, a[k]); svg.appendChild(e); return e; };
+for (let v = 0; v <= 50; v += 10) { el('line', { x1: L, x2: W - R, y1: Y(v), y2: Y(v), stroke: 'var(--line)', 'stroke-width': 1 }); el('text', { x: L - 6, y: Y(v) + 4, 'text-anchor': 'end' }).textContent = v + '%'; }
+const fmt = h => { const e = ((h - 4) % 24 + 24) % 24; return (e % 12 || 12) + (e < 12 ? ' am' : ' pm'); };
+for (let hh = 17; hh <= 29; hh += 2) el('text', { x: X((hh - 17) * 60), y: H - 12, 'text-anchor': 'middle' }).textContent = fmt(hh);
+// idle band
+el('rect', { x: X(20 * 60 - 1020), y: T, width: X(23 * 60 + 10 - 1020) - X(20 * 60 - 1020), height: H - T - B, fill: 'var(--line)', opacity: 0.35 });
+el('text', { x: (X(180) + X(370)) / 2, y: T + 14, 'text-anchor': 'middle' }).textContent = 'waiting on cloud sessions';
+// 5h line, broken at resets
+let d = ''; pts.forEach((p, i) => { const reset = i > 0 && p.five < pts[i - 1].five; d += (i === 0 || reset ? 'M' : 'L') + X(p.min).toFixed(1) + ' ' + Y(p.five).toFixed(1); });
+el('path', { d, fill: 'none', stroke: 'var(--cyan)', 'stroke-width': 2.5, 'stroke-linejoin': 'round' });
+el('path', { d: pts.map((p, i) => (i ? 'L' : 'M') + X(p.min).toFixed(1) + ' ' + Y(p.week).toFixed(1)).join(''), fill: 'none', stroke: 'var(--amber)', 'stroke-width': 2, 'stroke-dasharray': '5 3' });
+const peak = pts.find(p => p.five === 43);
+el('circle', { cx: X(peak.min), cy: Y(peak.five), r: 4, fill: 'var(--cyan)' });
+el('text', { x: X(peak.min) + 8, y: Y(peak.five) + 4 }).textContent = '43% at the window reset';
+// hover
+const tip = document.getElementById('tip'), box = svg.parentElement;
+const hot = el('line', { y1: T, y2: H - B, stroke: 'var(--muted)', 'stroke-width': 1, opacity: 0 });
+svg.addEventListener('pointermove', e => {
+  const r = svg.getBoundingClientRect(), mx = (e.clientX - r.left) / r.width * W;
+  let best = pts[0]; for (const p of pts) if (Math.abs(X(p.min) - mx) < Math.abs(X(best.min) - mx)) best = p;
+  hot.setAttribute('x1', X(best.min)); hot.setAttribute('x2', X(best.min)); hot.setAttribute('opacity', 1);
+  const e4 = ((best.h - 4) % 24 + 24) % 24;
+  tip.hidden = false; tip.textContent = `${e4 % 12 || 12}:${String(best.m).padStart(2, '0')} ${e4 < 12 ? 'am' : 'pm'} · 5h ${best.five}% · week ${best.week}%`;
+  tip.style.left = (X(best.min) / W * r.width + 16) + 'px'; tip.style.top = (Y(best.five) / H * r.height + 16) + 'px';
+});
+svg.addEventListener('pointerleave', () => { tip.hidden = true; hot.setAttribute('opacity', 0); });
+</script>
