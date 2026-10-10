@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en-CA">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Shared audio · dev</title>
+  <meta name="theme-color" content="#121110" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <script>
+    (function () {
+      var d = document.documentElement, lock = d.getAttribute('data-scheme-lock'), t = null;
+      try { t = localStorage.getItem('ar:theme'); } catch (e) {}
+      var q = /[?&]theme=(light|dark)\b/.exec(location.search);
+      if (q) t = q[1];
+      if (lock === 'light' || lock === 'dark') t = lock;
+      if (t === 'light' || t === 'dark') d.setAttribute('data-theme', t);
+      if (/[?&]motion=reduce\b/.test(location.search)) d.setAttribute('data-motion', 'reduce');
+    })();
+  </script>
+  <style>
+    body { padding: 16px; font-size: 14px; }
+    h1 { font: 600 1.5rem/1.1 var(--ar-font-display); margin: 0 0 4px; }
+    h2 { font: 700 0.6875rem/1 var(--ar-font-ui); font-stretch: 75%; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ar-ink-3); margin: 22px 0 8px; }
+    .row { display: inline-flex; align-items: center; gap: 6px; margin: 0 6px 6px 0; padding: 2px 4px 2px 2px; border: 1px solid var(--ar-line); border-radius: 6px; background: var(--ar-surface); }
+    .row button { min-height: 32px; padding: 0 10px; }
+    .row code { font: 500 12px/1 var(--ar-font-mono); }
+    .row[data-bad] { border-color: var(--ar-danger); }
+    #status { font: 500 13px/1.4 var(--ar-font-mono); color: var(--ar-ink-2); white-space: pre-wrap; }
+  </style>
+  <script type="module" src="./main.ts"></script>
+</head>
+<body>
+  <h1>Shared audio</h1>
+  <p id="status">Press a button. Nothing sounds before the first gesture.</p>
+  <div id="app"></div>
+</body>
+</html>

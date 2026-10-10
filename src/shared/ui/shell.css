@@ -1,0 +1,86 @@
+/* =====================================================================
+   The game shell: film-strip header bar (hub.md §9, art-direction §6.1)
+   Content band 44px + perforation band 8px. Imported by shell.ts.
+   ===================================================================== */
+
+.ar-shell {
+  position: fixed; inset: 0 0 auto 0; z-index: var(--ar-z-shell);
+  height: var(--ar-shell-total);
+  padding: env(safe-area-inset-top, 0px) max(8px, env(safe-area-inset-right)) var(--ar-shell-perf-h) max(8px, env(safe-area-inset-left));
+  display: flex; align-items: center; gap: 8px; color: var(--ar-on-film);
+  view-transition-name: ar-shell;
+  transition: translate var(--ar-dur-base) var(--ar-ease-out);
+  -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none;
+}
+.ar-shell[data-hidden] { translate: 0 calc(-1 * (var(--ar-shell-total) - var(--ar-shell-perf-h))); }
+.ar-shell > :not(.ar-film-bg) { position: relative; }
+.ar-shell [hidden] { display: none !important; }
+.ar-shell :focus-visible { outline-color: var(--ar-focus-on-film); }
+@media (prefers-reduced-motion: reduce) { .ar-shell { transition: none; } }
+:root[data-motion="reduce"] .ar-shell { transition: none; }
+
+/* ---- back ---- */
+.ar-shell__back { flex: none; padding: 0 12px 0 10px; min-height: var(--ar-tap); color: var(--ar-on-film); }
+.ar-shell__back-label { font: var(--ar-w-label) 0.8125rem/1 var(--ar-font-ui); font-stretch: var(--ar-stretch-label); letter-spacing: var(--ar-tracking-label); text-transform: uppercase; }
+
+/* ---- identity ---- */
+.ar-shell__id { display: flex; align-items: center; gap: 10px; min-width: 0; flex: 0 1 auto; }
+.ar-shell__dot { flex: none; width: 6px; height: 6px; border-radius: 50%; background: var(--game-accent-lit); }
+.ar-shell__title {
+  margin: 0; min-width: 0; height: 1.2em;
+  font: var(--ar-w-semibold) 1.125rem/1 var(--ar-font-display); font-variation-settings: 'SOFT' 50; letter-spacing: -0.01em;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--ar-on-film);
+}
+.ar-shell__frame, .ar-shell .ar-edge {
+  font: var(--ar-w-bold) var(--ar-text-2xs)/1 var(--ar-font-ui); font-stretch: var(--ar-stretch-edge);
+  letter-spacing: var(--ar-tracking-edge); text-transform: uppercase; font-variant-numeric: tabular-nums;
+}
+.ar-shell__frame { color: var(--game-accent-lit); flex: none; }
+
+/* ---- status ---- */
+.ar-shell__status {
+  flex: 1 1 0; min-width: 0; margin: 0; text-align: center;
+  font: var(--ar-w-medium) 0.8125rem/1 var(--ar-font-mono); color: var(--ar-on-film-2);
+  font-variant-numeric: tabular-nums slashed-zero; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+/* ---- actions ---- */
+.ar-shell__actions { margin-left: auto; display: flex; align-items: center; gap: 2px; flex: none; }
+.ar-shell__action-host { display: flex; align-items: center; gap: 2px; }
+.ar-shell .ar-btn--on-film[aria-pressed="true"]:not(.ar-shell__sound):not(.ar-shell__fs):not(.ar-shell__loupe) { background: var(--ar-film-3); }
+.ar-shell__sound[aria-pressed="true"] { color: var(--ar-on-film-2); }
+.ar-shell__action { padding: 0 10px; min-height: var(--ar-tap); }
+.ar-shell__action[data-kind="primary"] { color: var(--game-accent-lit); border-color: var(--game-accent-lit); }
+.ar-shell__action[data-kind="primary"]:hover:not(:disabled) { background: var(--ar-film-2); }
+.ar-shell__action[aria-pressed="true"] { background: var(--ar-film-3); box-shadow: inset 0 -2px 0 var(--game-accent-lit); }
+.ar-shell__action:not(.ar-shell__action--text) { min-width: var(--ar-tap); }
+.ar-shell__action-label { display: inline; }
+
+/* Tablet: icon-only actions. Desktop (1024px+): icon plus label. */
+@media (max-width: 1023px) {
+  .ar-shell__action:not(.ar-shell__action--text) .ar-shell__action-label { display: none; }
+}
+
+/* Phone: title only; help, sound and More. */
+@media (max-width: 767px) {
+  .ar-shell { gap: 4px; }
+  .ar-shell__back { padding: 0; min-width: var(--ar-tap); }
+  .ar-shell__back-label, .ar-shell__dot, .ar-shell__frame { display: none; }
+  .ar-shell[data-has-actions] .ar-shell__status { display: none; }
+}
+
+/* ---- hub mode ---- */
+.ar-shell__brand { display: inline-flex; align-items: center; gap: 10px; flex: none; min-height: var(--ar-tap); padding: 0 6px; border-radius: var(--ar-radius-sm); color: var(--ar-on-film); text-decoration: none; }
+.ar-shell__brand:hover { background: var(--ar-film-2); }
+.ar-shell__mark { flex: none; border-radius: 5px; }
+.ar-shell__stock { color: var(--ar-edge-print); white-space: nowrap; }
+.ar-shell__name {
+  flex: 0 1 auto; min-width: 0; margin-left: 4px; color: var(--ar-on-film); text-decoration: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  font: var(--ar-w-semibold) 1.125rem/1.2 var(--ar-font-display); font-variation-settings: 'SOFT' 50; letter-spacing: -0.01em;
+  opacity: 0; translate: calc(-8px * var(--ar-motion-scale)) 0; pointer-events: none;
+  transition: opacity var(--ar-dur-base) var(--ar-ease-out), translate var(--ar-dur-base) var(--ar-ease-out);
+}
+.ar-shell__name[data-shown] { opacity: 1; translate: 0 0; pointer-events: auto; }
+.ar-shell__centre { display: none; flex: 1 1 0; margin: 0; text-align: center; color: var(--ar-on-film-3); white-space: nowrap; }
+@media (min-width: 1024px) { .ar-shell__centre { display: block; } }
+@media (max-width: 479px) { .ar-shell__stock { display: none; } }

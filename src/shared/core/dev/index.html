@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en-CA">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Shared core · dev</title>
+  <meta name="theme-color" content="#121110" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <script>
+    (function () {
+      var d = document.documentElement, lock = d.getAttribute('data-scheme-lock'), t = null;
+      try { t = localStorage.getItem('ar:theme'); } catch (e) {}
+      var q = /[?&]theme=(light|dark)\b/.exec(location.search);
+      if (q) t = q[1];
+      if (lock === 'light' || lock === 'dark') t = lock;
+      if (t === 'light' || t === 'dark') d.setAttribute('data-theme', t);
+      if (/[?&]motion=reduce\b/.test(location.search)) d.setAttribute('data-motion', 'reduce');
+    })();
+  </script>
+  <style>
+    body { padding: 16px; }
+    h1 { font: 600 1.5rem/1.1 var(--ar-font-display); margin: 0 0 12px; }
+    pre { font: 500 12px/1.5 var(--ar-font-mono); white-space: pre-wrap; margin: 0; }
+    #pad { width: 320px; height: 200px; margin-top: 16px; border: 1.5px dashed var(--ar-line-strong); border-radius: 8px; display: grid; place-items: center; color: var(--ar-ink-3); touch-action: none; }
+  </style>
+  <script type="module" src="./main.ts"></script>
+</head>
+<body>
+  <h1>Shared core</h1>
+  <pre id="out">running…</pre>
+  <div id="pad">gesture pad</div>
+</body>
+</html>

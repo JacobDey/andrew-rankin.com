@@ -1,0 +1,8 @@
+[
+  { "waitFor": "body[data-tx-ready]", "ms": 150000 },
+  { "shot": "shots/texturedle/tx-09-mobile-land.png" },
+  { "eval": "__game.setTilt(5,0); __game.advance(60)" },
+  { "eval": "__game.dropMarble(0,0,2); __game.advance(40)" },
+  { "shot": "shots/texturedle/tx-09-mobile.png" },
+  { "eval": "JSON.stringify({ noHScroll: document.documentElement.scrollWidth <= innerWidth, input: document.querySelector('.tx-guessbar input').getBoundingClientRect().bottom <= innerHeight, errors: __game.errors() })" }
+]

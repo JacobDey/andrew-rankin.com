@@ -1,0 +1,11 @@
+[{"eval":"__game.setTimeScale(10)"},{"eval":"__game.openBundle(1)"},{"wait":300},{"eval":"__game.place('p00','dev')"},{"eval":"__game.focusTray('dev')"},{"eval":"__game.rock(4,'corners')"},{"eval":"JSON.stringify(__game.wedge('p00'))"},{"eval":"__game.fix('p00')"},
+{"eval":"(async()=>{const g=__game;const h=g.meta('p00').hotspots.find(h=>h.kind==='wick');await g.inspect('p00',{eye:'L',velvet:1,loupe:{u:h.x/1024,v:h.y/512,power:4}});})()"},{"wait":400},{"shot":"shots/plates/m2-loupeL.png"},
+{"eval":"(async()=>{const g=__game;const h=g.meta('p00').hotspots.find(h=>h.kind==='wick');await g.inspect('p00',{eye:'R',velvet:1,loupe:{u:h.x/1024+496/1024,v:h.y/512,power:4}});})()"},{"wait":400},{"shot":"shots/plates/m2-loupeR.png"},
+{"eval":"__game.inspect(null)"},{"eval":"__game.openBook('persons')"},{"wait":300},{"shot":"shots/plates/m2-book.png"},{"eval":"__game.closeBook()"},
+{"eval":"(async()=>{const g=__game;for(const id of ['p01','p02','p03','p04','p05','p06','p07','p08','p09','p10','p11','p12']){await g.openBundle(g.meta(id).bundle);g.develop(id,40);g.fix(id)}g.solveAll();})()"},{"wait":2000},
+{"eval":"JSON.stringify(__game.state().book)"},{"eval":"__game.setStation('table')"},{"wait":300},{"shot":"shots/plates/m2-rack.png"},
+{"eval":"__game.liftPane()"},{"wait":500},{"shot":"shots/plates/m2-bone.png"},{"eval":"__game.state().palette"},
+{"eval":"__game.readPane()"},{"wait":400},{"shot":"shots/plates/m2-pane.png"},{"eval":"JSON.stringify({pr:__game.state().paneRead,b:__game.state().book})"},
+{"eval":"__game.inspect(null)"},{"eval":"__game.seal(true).then(s=>JSON.stringify(s))"},{"wait":400},{"shot":"shots/plates/m2-letter.png"},
+{"eval":"(async()=>{const g=__game;document.querySelector('.pl-doc-close')?.click();await g.openBundle(4);g.develop('p13',40);g.fix('p13');await g.inspect('p13',{velvet:1});})()"},{"wait":500},{"shot":"shots/plates/m2-p13.png"},
+{"eval":"(async()=>{const g=__game;await g.inspect(null);const before=JSON.stringify(g.wedge('p01'));const i=g.pin();g.develop('p01',80);await g.restore(i);return before===JSON.stringify(g.wedge('p01'))})()"}]

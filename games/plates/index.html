@@ -1,16 +1,32 @@
 <!doctype html>
-<html lang="en">
+<html lang="en-CA" data-game="plates" data-scheme-lock="dark" data-grain="off">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Plates — Andrew Rankin</title>
-  <link rel="stylesheet" href="/src/hub/placeholder.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Ruby Sector · Andrew Rankin</title>
+  <meta name="description" content="A one-bit darkroom mystery: develop a lighthouse photographer's glass plates and work out who everyone was and how each one ended." />
+  <meta name="theme-color" content="#121110" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <meta property="og:title" content="Ruby Sector · Andrew Rankin" />
+  <meta property="og:description" content="A one-bit darkroom mystery: develop a lighthouse photographer's glass plates and work out who everyone was and how each one ended." />
+  <meta property="og:image" content="/og/plates.jpg" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <script>
+    (function () {
+      var d = document.documentElement, lock = d.getAttribute('data-scheme-lock'), t = null;
+      try { t = localStorage.getItem('ar:theme'); } catch (e) {}
+      var q = /[?&]theme=(light|dark)\b/.exec(location.search);   // test/screenshot override, not persisted
+      if (q) t = q[1];
+      if (lock === 'light' || lock === 'dark') t = lock;
+      if (t === 'light' || t === 'dark') d.setAttribute('data-theme', t);
+      if (/[?&]motion=reduce\b/.test(location.search)) d.setAttribute('data-motion', 'reduce');
+    })();
+  </script>
+  <script type="module" src="./main.ts"></script>
 </head>
 <body>
-  <main class="sheet">
-    <h1>Plates</h1>
-    <p class="tag">In the developer tray. Check back soon.</p>
-    <p><a href="/" style="color:var(--ink)">&larr; Back to the contact sheet</a></p>
-  </main>
+  <main id="stage" class="ar-stage" tabindex="-1"></main>
+  <noscript>Ruby Sector needs JavaScript: it develops its plates in your browser.</noscript>
 </body>
 </html>

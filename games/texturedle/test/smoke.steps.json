@@ -1,0 +1,22 @@
+[
+  { "waitFor": "body[data-tx-ready]", "ms": 150000 },
+  { "shot": "shots/texturedle/tx-01-land.png" },
+  { "eval": "__game.setTilt(5,0); __game.advance(60)" },
+  { "shot": "shots/texturedle/tx-02-tilt.png" },
+  { "eval": "__game.dropMarble(0,0,2); __game.advance(40)" },
+  { "shot": "shots/texturedle/tx-03-marble.png" },
+  { "eval": "__game.advance(80); JSON.stringify(__game.state().evidence)" },
+  { "eval": "__game.dragCloth('lens', [[-3,1],[3,1],[-3,0],[3,0]], 1500)" },
+  { "shot": "shots/texturedle/tx-04-lens.png" },
+  { "eval": "__game.dragCloth('burlap', [[-2,-1],[2,-1],[-2,-1],[2,-1],[-2,-1],[2,-1]], 2500, 1)" },
+  { "shot": "shots/texturedle/tx-05-burlap.png" },
+  { "eval": "JSON.stringify({ layers: __game.state().bench.layersRevealed, chips: __game.chips() })" },
+  { "eval": "JSON.stringify(__game.guess('brick'))" },
+  { "eval": "__game.whenIdle()" },
+  { "eval": "__game.advance(2); __game.state().ratioIndex" },
+  { "shot": "shots/texturedle/tx-06-miss.png" },
+  { "eval": "JSON.stringify(__game.guess('rusty mailbox'))" },
+  { "eval": "__game.whenIdle()" },
+  { "shot": "shots/texturedle/tx-07-reveal.png" },
+  { "eval": "JSON.stringify({ status: __game.state().status, lint: __game.lintAtlas(), errors: __game.errors() })" }
+]

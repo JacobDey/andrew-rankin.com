@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en-CA" data-game="shared:surface">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Surface · dev · shared</title>
+  <script>
+    (function () {
+      var d = document.documentElement, lock = d.getAttribute('data-scheme-lock'), t = null;
+      try { t = localStorage.getItem('ar:theme'); } catch (e) {}
+      var q = /[?&]theme=(light|dark)\b/.exec(location.search);
+      if (q) t = q[1];
+      if (lock === 'light' || lock === 'dark') t = lock;
+      if (t === 'light' || t === 'dark') d.setAttribute('data-theme', t);
+      if (/[?&]motion=reduce\b/.test(location.search)) d.setAttribute('data-motion', 'reduce');
+    })();
+  </script>
+  <style>
+    html, body { margin: 0; background: #0b0a09; color: #e6dfcb; font: 13px/1.4 ui-monospace, Consolas, monospace; }
+    main { padding: 12px; max-width: 1100px; margin: 0 auto; }
+    h1 { font-size: 14px; font-weight: 600; margin: 0 0 8px; }
+    #sheet { display: grid; grid-template-columns: repeat(auto-fill, minmax(168px, 1fr)); gap: 10px; }
+    figure { margin: 0; }
+    figure canvas { display: block; width: 100%; aspect-ratio: 1; background: #14110e; border: 1px solid #4a443b; }
+    figcaption { padding: 2px 0; opacity: 0.85; }
+    .row { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0; align-items: center; }
+    button { font: inherit; padding: 6px 10px; min-height: 36px; background: #1d1a17; color: inherit; border: 1px solid #4a443b; border-radius: 3px; cursor: pointer; }
+    #big { width: min(100%, 520px); aspect-ratio: 1; background: #14110e; border: 1px solid #4a443b; }
+    #log { white-space: pre-wrap; opacity: 0.8; }
+  </style>
+</head>
+<body>
+  <main id="stage" tabindex="-1">
+    <h1>@shared/surface · recipe library</h1>
+    <div class="row">
+      <button id="bench">log bake timings</button>
+      <label>lamp azimuth <input id="az" type="range" min="0" max="360" value="135" /></label>
+      <span id="azv">135</span>
+    </div>
+    <div id="sheet"></div>
+    <h1 style="margin-top:14px">close view: <span id="bigname">rusty-mailbox</span> at 5:1</h1>
+    <canvas id="big" width="512" height="512"></canvas>
+    <div id="log"></div>
+  </main>
+  <script type="module" src="./main.ts"></script>
+</body>
+</html>

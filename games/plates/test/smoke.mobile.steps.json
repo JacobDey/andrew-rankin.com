@@ -1,0 +1,53 @@
+[
+{
+"waitFor": "body[data-ready='1']"
+},
+{
+"shot": "shots/plates/m01-bench.png"
+},
+{
+"eval": "__game.setTimeScale(10)"
+},
+{
+"eval": "__game.openBundle(1)"
+},
+{
+"eval": "__game.place('p00','dev')"
+},
+{
+"eval": "__game.focusTray('dev')"
+},
+{
+"eval": "__game.rock(4,'corners')"
+},
+{
+"shot": "shots/plates/m02-tray.png"
+},
+{
+"eval": "__game.fix('p00')"
+},
+{
+"eval": "__game.inspect('p00',{velvet:0.5})"
+},
+{
+"wait": 300
+},
+{
+"shot": "shots/plates/m04-inspect.png"
+},
+{
+"eval": "JSON.stringify({sw:document.documentElement.scrollWidth,iw:innerWidth})"
+},
+{
+"eval": "__game.inspect(null)"
+},
+{
+"eval": "__game.openBook('persons')"
+},
+{
+"wait": 300
+},
+{
+"shot": "shots/plates/m06-book.png"
+}
+]

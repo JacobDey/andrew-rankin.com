@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en-CA">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Shared UI · dev</title>
+  <meta name="theme-color" content="#121110" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <script>
+    /* dev only: ?game=<slug> picks the registry entry and its scheme lock */
+    (function () {
+      var m = /[?&]game=(\w+)/.exec(location.search), g = m ? m[1] : 'darkroom', d = document.documentElement;
+      d.setAttribute('data-game', g);
+      if (g === 'darkroom' || g === 'plates' || g === 'latent') d.setAttribute('data-scheme-lock', 'dark');
+    })();
+  </script>
+  <script>
+    (function () {
+      var d = document.documentElement, lock = d.getAttribute('data-scheme-lock'), t = null;
+      try { t = localStorage.getItem('ar:theme'); } catch (e) {}
+      var q = /[?&]theme=(light|dark)\b/.exec(location.search);   // test/screenshot override, not persisted
+      if (q) t = q[1];
+      if (lock === 'light' || lock === 'dark') t = lock;
+      if (t === 'light' || t === 'dark') d.setAttribute('data-theme', t);
+      if (/[?&]motion=reduce\b/.test(location.search)) d.setAttribute('data-motion', 'reduce');
+    })();
+  </script>
+  <script type="module" src="./main.ts"></script>
+</head>
+<body>
+  <main id="stage" class="ar-stage" tabindex="-1"></main>
+</body>
+</html>

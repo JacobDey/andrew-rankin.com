@@ -1,0 +1,14 @@
+[
+  {"waitFor": "body[data-ready='1']"},
+  {"eval": "__game.skipOnboarding(); __game.loadPreset('triplet')"},
+  {"wait": 500},
+  {"shot": "shots/lensbench/lb-m2-bench.png"},
+  {"eval": "__game.goto('street').then(() => { __game.setTime(17.5); __game.standpoint('fountain'); __game.aimAt('fountain'); __game.setAperture(16); __game.setShutter(0.5); __game.tripod(true); return __game.fire({seed: 7}) }).then(r => JSON.stringify(r))"},
+  {"eval": "(() => { __game.rewind(); return __game.goto('tank').then(() => { window.__devp = __game.develop({minutes: 9.5, tempC: 20, agitation: 1}); return 'developing' }) })()"},
+  {"wait": 1500},
+  {"shot": "shots/lensbench/lb-m4-tank.png"},
+  {"eval": "window.__devp.then(ids => { __game.goto('lightbox'); __game.openFrame(ids[0]); return JSON.stringify(ids) })"},
+  {"wait": 800},
+  {"shot": "shots/lensbench/lb-m8-lightbox.png"},
+  {"eval": "JSON.stringify({errors: __game.errors(), scroll: document.documentElement.scrollWidth <= innerWidth})"}
+]

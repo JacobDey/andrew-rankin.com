@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en-CA" data-game="shared-photo">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark" />
+  <title>Shared · dev · photo</title>
+  <style>
+    html, body { margin: 0; background: #14110f; color: #e8e0d2; font: 13px/1.4 ui-monospace, 'IBM Plex Mono', Consolas, monospace; }
+    main { padding: 12px 16px 24px; max-width: 1280px; margin: 0 auto; }
+    h1 { font-size: 15px; margin: 0 0 4px; font-weight: 600; }
+    p.sub { margin: 0 0 10px; color: #a39a8c; }
+    .bar { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 12px; }
+    button { background: #2a2420; color: #e8e0d2; border: 1px solid #4a423a; padding: 6px 10px; font: inherit; cursor: pointer; }
+    button:hover { background: #3a322b; }
+    #gallery { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-start; }
+    figure { margin: 0; }
+    figcaption { margin-top: 3px; color: #a39a8c; max-width: 400px; }
+    canvas { display: block; background: #000; border: 1px solid #3a342e; }
+    pre { margin: 12px 0 0; white-space: pre-wrap; color: #cfc6b6; }
+    pre.fail { color: #ff9b8a; }
+  </style>
+</head>
+<body data-grain="off">
+  <main id="stage" tabindex="-1">
+    <h1>@shared/photo dev page</h1>
+    <p class="sub">A calibrated yard: fountain, string lights, windmill, tilted ground. <code>__game.demo(name)</code> shoots and develops; <code>__game.selftest(groups?)</code> runs the closed-form checks.</p>
+    <div class="bar" id="bar"></div>
+    <div id="gallery"></div>
+    <pre id="out"></pre>
+  </main>
+  <script type="module" src="./main.ts"></script>
+</body>
+</html>

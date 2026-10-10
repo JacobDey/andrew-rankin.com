@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en-CA" data-game="shared:fluid">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Fluid · dev · shared</title>
+  <script>
+    (function () {
+      var d = document.documentElement, lock = d.getAttribute('data-scheme-lock'), t = null;
+      try { t = localStorage.getItem('ar:theme'); } catch (e) {}
+      var q = /[?&]theme=(light|dark)\b/.exec(location.search);
+      if (q) t = q[1];
+      if (lock === 'light' || lock === 'dark') t = lock;
+      if (t === 'light' || t === 'dark') d.setAttribute('data-theme', t);
+      if (/[?&]motion=reduce\b/.test(location.search)) d.setAttribute('data-motion', 'reduce');
+    })();
+  </script>
+  <style>
+    html, body { margin: 0; background: #0b0a09; color: #e6dfcb; font: 13px/1.4 ui-monospace, Consolas, monospace; }
+    main { padding: 12px; max-width: 980px; margin: 0 auto; }
+    canvas { display: block; background: #14110e; border: 1px solid #4a443b; width: 100%; image-rendering: pixelated; touch-action: none; }
+    #top { aspect-ratio: 4 / 3; max-height: 62vh; }
+    #side { height: 120px; margin-top: 8px; }
+    .row { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+    button { font: inherit; padding: 6px 10px; min-height: 36px; background: #1d1a17; color: inherit; border: 1px solid #4a443b; border-radius: 3px; cursor: pointer; }
+    button[aria-pressed="true"] { background: #e6dfcb; color: #141210; }
+    #hud { white-space: pre; }
+  </style>
+</head>
+<body>
+  <main id="stage" tabindex="-1">
+    <div class="row">
+      <button id="rock" aria-pressed="true">auto-rock</button>
+      <button id="res" aria-pressed="false">resonance (8 deg, 0.5 Hz)</button>
+      <button id="refill">refill</button>
+      <button id="pour">pour</button>
+      <button id="plate" aria-pressed="false">plate floor</button>
+      <button id="dye">dye</button>
+    </div>
+    <canvas id="top" width="480" height="360" aria-label="Tray from above: depth"></canvas>
+    <canvas id="side" width="480" height="60" aria-label="Tray cross-section"></canvas>
+    <div id="hud"></div>
+  </main>
+  <script type="module" src="./main.ts"></script>
+</body>
+</html>

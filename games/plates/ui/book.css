@@ -1,0 +1,87 @@
+/* games/plates/ui/book.css — the Return and the document reader (Canary or Bone; never Ruby). */
+.pl-book, .pl-doc-ground {
+  --pl-b-ink: #1a1206; --pl-b-light: #f2b654;
+  position: absolute; inset: 0; z-index: 30; display: flex; align-items: center; justify-content: center;
+  background: color-mix(in srgb, var(--pl-b-ink) 88%, transparent);
+  font-family: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif; font-size: 16px; line-height: 1.45;
+}
+.pl-book[hidden] { display: none; }
+.pl-book--bone { --pl-b-ink: #191613; --pl-b-light: #e9e1cf; }
+.pl-book-sheet {
+  width: min(980px, 100%); height: min(760px, 100%); display: flex; flex-direction: column;
+  background: var(--pl-b-light); color: var(--pl-b-ink); border: 2px solid var(--pl-b-ink); box-shadow: 0 0 0 6px var(--pl-b-light);
+}
+.pl-book-top { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-bottom: 2px solid var(--pl-b-ink); flex-wrap: wrap; }
+.pl-book-spine { letter-spacing: .08em; }
+.pl-book-tabs { display: flex; gap: 4px; flex: 1; flex-wrap: wrap; }
+.pl-book button, .pl-doc button {
+  min-height: 44px; min-width: 44px; padding: 6px 12px; font: inherit; color: var(--pl-b-ink); background: transparent;
+  border: 2px solid var(--pl-b-ink); border-radius: 0; cursor: pointer;
+}
+.pl-book button[aria-selected="true"], .pl-book button[aria-pressed="true"] { background: var(--pl-b-ink); color: var(--pl-b-light); }
+.pl-book button:focus-visible, .pl-book select:focus-visible, .pl-doc button:focus-visible { outline: 3px dashed var(--pl-b-ink); outline-offset: 2px; }
+.pl-book button:disabled { opacity: 1; cursor: default; border-style: dotted; }
+.pl-book-body { flex: 1; overflow: auto; padding: 12px 18px; overscroll-behavior: contain; touch-action: pan-y; }
+.pl-book-foot { padding: 8px 14px; border-top: 2px solid var(--pl-b-ink); display: flex; justify-content: flex-end; }
+.pl-book-head { margin: 0 0 10px; }
+.pl-sc { font-variant: small-caps; letter-spacing: .04em; }
+.pl-book em, .pl-doc em { font-style: italic; }
+.pl-persons, .pl-findings, .pl-sector { list-style: none; margin: 0; padding: 0; }
+.pl-person { position: relative; display: grid; grid-template-columns: 90px 76px 1fr; gap: 10px; align-items: center; padding: 8px 0; border-bottom: 1px dashed var(--pl-b-ink); min-height: 60px; }
+.pl-person .pl-empty { grid-column: 2 / span 2; }
+.pl-portrait { width: 72px; height: 72px; image-rendering: pixelated; border: 2px solid var(--pl-b-ink); cursor: pointer; }
+.pl-fields { display: flex; flex-wrap: wrap; gap: 8px 14px; }
+.pl-fields label { display: flex; flex-direction: column; font-size: 14px; }
+.pl-fields label[hidden] { display: none; }
+.pl-book select { min-height: 44px; font: inherit; font-size: 16px; color: var(--pl-b-ink); background: var(--pl-b-light); border: 2px solid var(--pl-b-ink); border-radius: 0; padding: 4px 6px; max-width: 100%; }
+.pl-stamp {
+  position: absolute; right: 8px; top: 50%; transform: translateY(-50%) rotate(var(--r, -3deg));
+  font-variant: small-caps; letter-spacing: .12em; font-weight: 700; padding: 2px 10px; border: 3px double var(--pl-b-ink); color: var(--pl-b-ink); pointer-events: none;
+}
+.pl-sector .pl-stamp, .pl-pencil .pl-stamp { position: static; display: inline-block; transform: rotate(var(--r, -3deg)); }
+.pl-book-body > .pl-stamp { position: static; display: inline-block; margin-top: 12px; transform: rotate(-3deg); font-size: 20px; }
+.pl-finding { position: relative; padding: 10px 0; border-bottom: 1px dashed var(--pl-b-ink); }
+.pl-printed { margin: 0 0 6px; font-variant: small-caps; letter-spacing: .03em; padding-right: 120px; }
+.pl-verdict { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.pl-slot { min-width: 150px !important; display: inline-flex; gap: 6px; align-items: center; border-style: dashed !important; }
+.pl-slot.is-armed { background: color-mix(in srgb, var(--pl-b-ink) 18%, transparent); }
+.pl-thumb { width: 96px; height: 48px; image-rendering: pixelated; display: block; }
+.pl-strip { display: flex; gap: 8px; flex-wrap: wrap; padding: 12px 0 4px; border-top: 2px solid var(--pl-b-ink); margin-top: 10px; }
+.pl-strip-plate { display: flex !important; flex-direction: column; align-items: center; gap: 2px; padding: 4px !important; }
+.pl-strip-plate.is-held { outline: 3px solid var(--pl-b-ink); outline-offset: 2px; }
+.pl-sector li { padding: 8px 0; border-bottom: 1px dashed var(--pl-b-ink); }
+.pl-q { margin: 0 0 4px; font-variant: small-caps; letter-spacing: .03em; }
+.pl-docs { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
+.pl-docs button { width: 100%; text-align: left; }
+/* reader */
+.pl-doc-ground { z-index: 40; padding: 16px; }
+.pl-doc {
+  position: relative; width: min(640px, 100%); max-height: 100%; overflow: auto; padding: 28px 28px 20px; background: var(--pl-b-light); color: var(--pl-b-ink);
+  border: 2px solid var(--pl-b-ink); box-shadow: 0 0 0 6px var(--pl-b-light); overscroll-behavior: contain; touch-action: pan-y;
+}
+.pl-doc:focus { outline: none; }
+.pl-doc p { margin: 0 0 .7em; }
+.pl-doc-title { font-size: 18px; font-weight: 400; font-variant: small-caps; letter-spacing: .05em; margin: 0 0 14px; }
+.pl-doc--board p, .pl-doc--print p { font-variant: small-caps; letter-spacing: .03em; }
+.pl-doc--ottilie p { font-style: italic; }
+.pl-doc--amos p { font-style: italic; font-size: 1.25em; transform: skewX(-4deg); }
+.pl-cramped { font-size: .78em; letter-spacing: -.02em; display: inline-block; transform: translateY(-.25em); }
+.pl-doc-close { position: sticky; bottom: 0; margin-top: 8px; }
+.pl-doc-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+.pl-doc--final { text-align: center; }
+.pl-doc--small { width: min(420px, 100%); }
+.pl-reg-cover { border-bottom: 1px dashed var(--pl-b-ink); padding-bottom: 8px; }
+@media (max-width: 899px) {
+  .pl-book-sheet { height: 100%; }
+  .pl-person { grid-template-columns: 64px 76px 1fr; }
+  .pl-fields { grid-column: 1 / -1; }
+  .pl-printed { padding-right: 0; }
+  .pl-stamp { top: 14px; transform: rotate(var(--r, -3deg)); }
+  .pl-book-spine { display: none; }
+  .pl-book-top { flex-wrap: nowrap; padding: 6px; gap: 6px; }
+  .pl-book-tabs { flex-wrap: nowrap; overflow-x: auto; gap: 2px; }
+  .pl-book-tabs button { padding: 4px 6px; font-size: 14px; white-space: nowrap; }
+  .pl-person { grid-template-columns: 76px 1fr; }
+  .pl-person .pl-fig { grid-column: 1 / -1; }
+  .pl-person .pl-empty { grid-column: 1 / -1; }
+}

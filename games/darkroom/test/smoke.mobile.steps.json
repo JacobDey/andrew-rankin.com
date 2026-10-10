@@ -1,0 +1,12 @@
+[
+  {"waitFor": "body[data-ready=\"1\"]"},
+  {"wait": 1200},
+  {"tap": [82, 100]},
+  {"wait": 2000},
+  {"clickText": "Trays"},
+  {"wait": 800},
+  {"drag": [[195, 420], [300, 420]], "steps": 12, "ms": 500},
+  {"wait": 1500},
+  {"shot": "shots/darkroom/09-mobile.png"},
+  {"eval": "JSON.stringify({scrollW: document.documentElement.scrollWidth, innerW: innerWidth, safe: __game.state().lights.safe, errors: __game.errors()})"}
+]

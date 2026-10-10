@@ -1,0 +1,12 @@
+[
+  { "waitFor": "body[data-tx-ready]", "ms": 150000 },
+  { "eval": "__game.dropMarble(1,0,2); __game.advance(30); JSON.stringify(__game.guess('cork'))" },
+  { "eval": "__game.whenIdle()" },
+  { "eval": "JSON.stringify(__game.guess('mailbox'))" },
+  { "eval": "__game.whenIdle()" },
+  { "eval": "location.assign('/games/texturedle/?test=1&day=1'); 'reloading'" },
+  { "wait": 4000 },
+  { "waitFor": "body[data-tx-ready]", "ms": 150000 },
+  { "eval": "__game.advance(2); JSON.stringify({ status: __game.state().status, guesses: __game.state().guesses, ratio: __game.state().ratioIndex })" },
+  { "shot": "shots/texturedle/tx-08-resume.png" }
+]

@@ -1,16 +1,31 @@
 <!doctype html>
-<html lang="en">
+<html lang="en-CA" data-game="darkroom" data-scheme-lock="dark" data-theme="dark" data-grain="off">
 <head>
+  <script>
+    (function () {
+      var d = document.documentElement, lock = d.getAttribute('data-scheme-lock'), t = null;
+      try { t = localStorage.getItem('ar:theme'); } catch (e) {}
+      var q = /[?&]theme=(light|dark)\b/.exec(location.search);   // test/screenshot override, not persisted
+      if (q) t = q[1];
+      if (lock === 'light' || lock === 'dark') t = lock;
+      if (t === 'light' || t === 'dark') d.setAttribute('data-theme', t);
+      if (/[?&]motion=reduce\b/.test(location.search)) d.setAttribute('data-motion', 'reduce');
+    })();
+  </script>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Darkroom — Andrew Rankin</title>
-  <link rel="stylesheet" href="/src/hub/placeholder.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Darkroom · Andrew Rankin</title>
+  <meta name="description" content="A hands-in-the-tray darkroom toy: import a PNG, then print it in silver or as a cyanotype with simulated, sloshing chemistry." />
+  <meta name="theme-color" content="#121110" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <meta property="og:title" content="Darkroom · Andrew Rankin" />
+  <meta property="og:description" content="A hands-in-the-tray darkroom toy: import a PNG, then print it in silver or as a cyanotype with simulated, sloshing chemistry." />
+  <meta property="og:image" content="/og/darkroom.jpg" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <script type="module" src="./main.ts"></script>
 </head>
 <body>
-  <main class="sheet">
-    <h1>Darkroom</h1>
-    <p class="tag">In the developer tray. Check back soon.</p>
-    <p><a href="/" style="color:var(--ink)">&larr; Back to the contact sheet</a></p>
-  </main>
+  <main id="stage" class="ar-stage dr-stage" tabindex="-1"></main>
 </body>
 </html>

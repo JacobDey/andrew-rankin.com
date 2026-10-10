@@ -1,0 +1,272 @@
+/* =====================================================================
+   Andrew-Rankin.com: design tokens v1 (src/shared/ui/tokens.css)
+   Import before any other CSS on every page.
+   ===================================================================== */
+:root {
+  color-scheme: light;
+
+  /* ---- Families ---- */
+  --ar-font-display: 'Fraunces Variable', 'Fraunces', ui-serif, Georgia, 'Times New Roman', serif;
+  --ar-font-ui: 'Archivo Variable', 'Archivo', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --ar-font-mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
+  --ar-font-hand: 'Caveat Variable', 'Caveat', 'Segoe Print', 'Bradley Hand', cursive;
+
+  /* ---- Weights & widths ---- */
+  --ar-w-regular: 400;
+  --ar-w-medium: 500;
+  --ar-w-semibold: 600;
+  --ar-w-label: 650;
+  --ar-w-bold: 700;
+  --ar-w-display: 640;
+  --ar-stretch-body: 100%;
+  --ar-stretch-label: 87.5%;
+  --ar-stretch-edge: 75%;
+
+  /* ---- Type scale ---- */
+  --ar-text-2xs: 0.6875rem;                                   /* 11px edge print floor */
+  --ar-text-xs: 0.75rem;                                      /* 12 */
+  --ar-text-sm: 0.875rem;                                     /* 14 */
+  --ar-text-md: 1rem;                                         /* 16 body */
+  --ar-text-lg: 1.1875rem;                                    /* 19 */
+  --ar-text-xl: clamp(1.375rem, 1.2rem + 0.75vw, 1.75rem);    /* 22 to 28 */
+  --ar-text-2xl: clamp(1.75rem, 1.4rem + 1.5vw, 2.5rem);      /* 28 to 40 */
+  --ar-text-3xl: clamp(2.25rem, 1.6rem + 3vw, 4rem);          /* 36 to 64 */
+  --ar-text-display: clamp(3rem, 1.9rem + 5.6vw, 7.5rem);     /* 48 to 120 */
+  --ar-leading-tight: 1.05;
+  --ar-leading-snug: 1.25;
+  --ar-leading-body: 1.55;
+  --ar-tracking-display: -0.03em;
+  --ar-tracking-label: 0.06em;
+  --ar-tracking-edge: 0.16em;
+
+  /* ---- Space (4px base) ---- */
+  --ar-space-1: 4px;
+  --ar-space-2: 8px;
+  --ar-space-3: 12px;
+  --ar-space-4: 16px;
+  --ar-space-5: 24px;
+  --ar-space-6: 32px;
+  --ar-space-7: 48px;
+  --ar-space-8: 64px;
+  --ar-space-9: 96px;
+  --ar-space-10: 128px;
+  --ar-gutter: clamp(16px, 4vw, 40px);   /* page side padding; 16px minimum on phones */
+  --ar-maxw: 1200px;                      /* hub content width */
+  --ar-measure: 62ch;                     /* body text line length */
+  --ar-tap: 44px;                         /* minimum touch target */
+
+  /* ---- Radii ---- */
+  --ar-radius-xs: 2px;     /* film frame corners, kbd */
+  --ar-radius-sm: 4px;     /* buttons, inputs: camera-button squared */
+  --ar-radius-md: 8px;     /* panels, menus */
+  --ar-radius-lg: 14px;    /* dialogs */
+  --ar-radius-round: 999px;
+
+  /* ---- Shell geometry ---- */
+  --ar-shell-h: 52px;                     /* 44px content band + 8px perforation band */
+  --ar-shell-perf-h: 8px;
+  --ar-shell-total: calc(var(--ar-shell-h) + env(safe-area-inset-top, 0px));
+
+  /* ---- Layers ---- */
+  --ar-z-stage: 0;
+  --ar-z-hud: 10;
+  --ar-z-shell: 100;
+  --ar-z-popover: 200;
+  --ar-z-toast: 300;
+  --ar-z-loupe: 400;                      /* hub only; dialogs use the top layer */
+
+  /* ---- Motion (see section 9) ---- */
+  --ar-dur-press: 90ms;
+  --ar-dur-quick: 160ms;
+  --ar-dur-base: 240ms;
+  --ar-dur-slow: 420ms;
+  --ar-dur-draw: 480ms;                   /* grease pencil stroke */
+  --ar-dur-develop: 900ms;                /* image coming up in the tray */
+  --ar-ease-out: cubic-bezier(0.16, 0.84, 0.3, 1);
+  --ar-ease-in: cubic-bezier(0.5, 0, 0.75, 0);
+  --ar-ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --ar-ease-develop: cubic-bezier(0.35, 0, 0.15, 1);
+  --ar-ease-settle: linear(0, 0.14 6%, 0.72 13%, 0.94 17%, 1.02 20%, 1.04 23%, 1.03 27%, 1 36%, 1);  /* 4% overshoot, then rest */
+  --ar-motion-scale: 1;                   /* multiply every travel distance by this */
+
+  /* ---- FILM: identical in both themes ---- */
+  --ar-film: #121110;              /* rebate: shell bar, toasts, strips */
+  --ar-film-2: #22201D;            /* hover/raised on film */
+  --ar-film-3: #2E2B27;            /* pressed on film, separators */
+  --ar-exposed: #0B0A09;           /* contact-sheet black between strips */
+  --ar-on-film: #EDE4D3;           /* text on film 14.9:1 */
+  --ar-on-film-2: #A99F90;         /* secondary text on film 7.2:1 */
+  --ar-on-film-3: #7A7064;         /* decorative edge print only (4.1:1); never essential text */
+  --ar-edge-print: #D9CFBF;        /* edge print on rebate 12.2:1 */
+  --ar-focus-on-film: #8CB2FF;     /* focus ring on film 9.4:1 */
+  --ar-grease-red-lit: #FF5D49;    /* grease on black 6.7:1 */
+  --ar-grease-yellow: #F2C443;     /* grease on black 12.0:1 */
+  --ar-grease-white: #F4EFE6;
+  --ar-graphite: #5A544D;          /* pencil on paper 7.0:1 */
+  --ar-tape: rgb(236 222 186 / 0.86);   /* masking tape */
+
+  /* ---- Game accents, LIT variants (always safe on film/exposed black) ---- */
+  --ar-game-texturedle-lit: #EA8A5F;
+  --ar-game-darkroom-lit:   #86ABF0;
+  --ar-game-plates-lit:     #E6DFCB;
+  --ar-game-latent-lit:     #E9B04A;
+  --ar-game-lensbench-lit:  #AE97F2;
+  --ar-game-studio-lit:     #78CB97;
+
+  /* =================== LIGHT THEME: "Light table" =================== */
+  --ar-bg: #F3EDE2;                /* page; the light table at rest */
+  --ar-glow: #FFFBF2;              /* light-table hot centre (radial) */
+  --ar-glow-halo: rgb(255 249 232 / 0.95);
+  --ar-surface: #FBF8F2;           /* paper: panels, dialogs */
+  --ar-surface-2: #EAE3D6;         /* wells, inputs, inactive tracks */
+  --ar-ink: #1B1815;               /* text 15.2:1 on bg */
+  --ar-ink-2: #4A433C;             /* secondary 8.4:1 */
+  --ar-ink-3: #6B6359;             /* tertiary/meta 5.1:1 (4.6:1 on surface-2) */
+  --ar-line: #D8CFC1;              /* hairlines, decorative only */
+  --ar-line-strong: #8A7F70;       /* input borders, control outlines 3.4:1 */
+  --ar-accent: #BE3A22;            /* grease red; text-safe 4.7:1 on bg */
+  --ar-accent-hover: #A3301B;
+  --ar-on-accent: #FFF8EE;         /* 5.2:1 */
+  --ar-accent-wash: rgb(190 58 34 / 0.10);
+  --ar-grease-red: #D23A2A;        /* grease on paper 4.5:1 */
+  --ar-focus: #1F57B8;             /* cyanotype; 5.8:1 on bg */
+  --ar-success: #2D7445;
+  --ar-warning: #8F5E00;
+  --ar-danger: #B3261E;
+  --ar-selection: rgb(31 87 184 / 0.22);
+  --ar-scrim: rgb(18 17 16 / 0.48);
+  --ar-shadow-1: 0 1px 2px rgb(27 24 21 / 0.12), 0 1px 1px rgb(27 24 21 / 0.06);
+  --ar-shadow-2: 0 8px 20px -6px rgb(27 24 21 / 0.22), 0 2px 4px rgb(27 24 21 / 0.08);
+  --ar-shadow-3: 0 28px 56px -16px rgb(27 24 21 / 0.34), 0 10px 20px -10px rgb(27 24 21 / 0.2);
+  --ar-grain-opacity: 0.05;
+  --ar-grain-blend: multiply;
+
+  --ar-game-texturedle: #A84B22;   /* rust        5.4:1 on surface */
+  --ar-game-darkroom:   #1F4F99;   /* cyanotype   7.5:1 */
+  --ar-game-plates:     #2E2C28;   /* silver/ink 13.2:1 */
+  --ar-game-latent:     #8A5E00;   /* evidence amber 5.4:1 */
+  --ar-game-lensbench:  #5B3FA6;   /* lens-coating violet 7.3:1 */
+  --ar-game-studio:     #2C7547;   /* backyard green 5.3:1 */
+}
+
+/* =================== DARK THEME: "Darkroom" ===================
+   Same block twice: once for the OS preference (unless forced light),
+   once for an explicit data-theme="dark". Keep them identical. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --ar-bg: #110F0D;
+    --ar-glow: #2B140B;              /* safelight warmth (radial, top) */
+    --ar-glow-halo: rgb(255 92 48 / 0.16);
+    --ar-surface: #1B1815;
+    --ar-surface-2: #26221D;
+    --ar-ink: #F1E9DC;
+    --ar-ink-2: #C4BAAB;
+    --ar-ink-3: #9A9083;
+    --ar-line: #38312A;
+    --ar-line-strong: #6E6357;
+    --ar-accent: #FF7148;            /* safelight */
+    --ar-accent-hover: #FF8C69;
+    --ar-on-accent: #1A0904;
+    --ar-accent-wash: rgb(255 113 72 / 0.14);
+    --ar-grease-red: #FF5D49;
+    --ar-focus: #8CB2FF;
+    --ar-success: #72C792;
+    --ar-warning: #E8AE45;
+    --ar-danger: #FF7A6E;
+    --ar-selection: rgb(140 178 255 / 0.28);
+    --ar-scrim: rgb(0 0 0 / 0.62);
+    --ar-shadow-1: 0 1px 2px rgb(0 0 0 / 0.5);
+    --ar-shadow-2: 0 8px 20px -6px rgb(0 0 0 / 0.6), 0 2px 4px rgb(0 0 0 / 0.4);
+    --ar-shadow-3: 0 28px 56px -16px rgb(0 0 0 / 0.75), 0 10px 20px -10px rgb(0 0 0 / 0.5);
+    --ar-grain-opacity: 0.07;
+    --ar-grain-blend: screen;
+    --ar-game-texturedle: var(--ar-game-texturedle-lit);
+    --ar-game-darkroom: var(--ar-game-darkroom-lit);
+    --ar-game-plates: var(--ar-game-plates-lit);
+    --ar-game-latent: var(--ar-game-latent-lit);
+    --ar-game-lensbench: var(--ar-game-lensbench-lit);
+    --ar-game-studio: var(--ar-game-studio-lit);
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --ar-bg: #110F0D;
+  --ar-glow: #2B140B;
+  --ar-glow-halo: rgb(255 92 48 / 0.16);
+  --ar-surface: #1B1815;
+  --ar-surface-2: #26221D;
+  --ar-ink: #F1E9DC;
+  --ar-ink-2: #C4BAAB;
+  --ar-ink-3: #9A9083;
+  --ar-line: #38312A;
+  --ar-line-strong: #6E6357;
+  --ar-accent: #FF7148;
+  --ar-accent-hover: #FF8C69;
+  --ar-on-accent: #1A0904;
+  --ar-accent-wash: rgb(255 113 72 / 0.14);
+  --ar-grease-red: #FF5D49;
+  --ar-focus: #8CB2FF;
+  --ar-success: #72C792;
+  --ar-warning: #E8AE45;
+  --ar-danger: #FF7A6E;
+  --ar-selection: rgb(140 178 255 / 0.28);
+  --ar-scrim: rgb(0 0 0 / 0.62);
+  --ar-shadow-1: 0 1px 2px rgb(0 0 0 / 0.5);
+  --ar-shadow-2: 0 8px 20px -6px rgb(0 0 0 / 0.6), 0 2px 4px rgb(0 0 0 / 0.4);
+  --ar-shadow-3: 0 28px 56px -16px rgb(0 0 0 / 0.75), 0 10px 20px -10px rgb(0 0 0 / 0.5);
+  --ar-grain-opacity: 0.07;
+  --ar-grain-blend: screen;
+  --ar-game-texturedle: var(--ar-game-texturedle-lit);
+  --ar-game-darkroom: var(--ar-game-darkroom-lit);
+  --ar-game-plates: var(--ar-game-plates-lit);
+  --ar-game-latent: var(--ar-game-latent-lit);
+  --ar-game-lensbench: var(--ar-game-lensbench-lit);
+  --ar-game-studio: var(--ar-game-studio-lit);
+}
+
+/* ---- Per-page game accent: every page sets <html data-game="slug"> ---- */
+[data-game="texturedle"] { --game-accent: var(--ar-game-texturedle); --game-accent-lit: var(--ar-game-texturedle-lit); }
+[data-game="darkroom"]   { --game-accent: var(--ar-game-darkroom);   --game-accent-lit: var(--ar-game-darkroom-lit); }
+[data-game="plates"]     { --game-accent: var(--ar-game-plates);     --game-accent-lit: var(--ar-game-plates-lit); }
+[data-game="latent"]     { --game-accent: var(--ar-game-latent);     --game-accent-lit: var(--ar-game-latent-lit); }
+[data-game="lensbench"]  { --game-accent: var(--ar-game-lensbench);  --game-accent-lit: var(--ar-game-lensbench-lit); }
+[data-game="studio"]     { --game-accent: var(--ar-game-studio);     --game-accent-lit: var(--ar-game-studio-lit); }
+[data-game="hub"]        { --game-accent: var(--ar-accent);          --game-accent-lit: var(--ar-grease-red-lit); }
+
+/* ---- Reduced motion collapses all chrome motion through the tokens ---- */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --ar-dur-press: 1ms;
+    --ar-dur-quick: 120ms;
+    --ar-dur-base: 120ms;
+    --ar-dur-slow: 120ms;
+    --ar-dur-draw: 1ms;
+    --ar-dur-develop: 160ms;
+    --ar-ease-settle: ease-out;
+    --ar-motion-scale: 0;
+  }
+}
+
+/* ---- More contrast: drop textures, strengthen rules ---- */
+@media (prefers-contrast: more) {
+  :root { --ar-line: var(--ar-line-strong); --ar-grain-opacity: 0; --ar-ink-3: var(--ar-ink-2); }
+}
+
+/* ---- data-motion="reduce" (test override) behaves exactly like the media query above ---- */
+:root[data-motion="reduce"] {
+  --ar-dur-press: 1ms;
+  --ar-dur-quick: 120ms;
+  --ar-dur-base: 120ms;
+  --ar-dur-slow: 120ms;
+  --ar-dur-draw: 1ms;
+  --ar-dur-develop: 160ms;
+  --ar-ease-settle: ease-out;
+  --ar-motion-scale: 0;
+}
+
+/* ---- ?embed=poster (hub poster mode): no shell, stage fills the viewport ---- */
+[data-embed="poster"] .ar-shell,
+[data-embed="poster"] .ar-live { display: none !important; }
+[data-embed="poster"] .ar-stage { inset: 0; }
+[data-embed="poster"] body::before { display: none; }

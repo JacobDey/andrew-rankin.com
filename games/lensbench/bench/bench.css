@@ -1,0 +1,61 @@
+/* The Bench (lensbench.md §7.1): fog tank left, spec column right, felt tray along the bottom. */
+.lb-bench { display: grid; grid-template-columns: minmax(0, 72fr) minmax(240px, 28fr); grid-template-rows: minmax(0, 1fr) auto; background: #241a13; }
+.lb-bench-tank { position: relative; grid-column: 1; grid-row: 1; margin: 10px 0 0 10px; border-radius: 6px; overflow: hidden; border: 2px solid #3a2c20; box-shadow: inset 0 0 40px rgba(0,0,0,.7); }
+.lb-bench-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; cursor: grab; }
+.lb-bench-canvas:active { cursor: grabbing; }
+.lb-gg { position: absolute; top: 10px; right: 10px; width: clamp(140px, 26%, 240px); aspect-ratio: 3 / 2; border: 3px solid var(--lb-anodize); border-radius: 4px; background: #0a0a0a; box-shadow: 0 6px 16px rgba(0,0,0,.6); pointer-events: none; }
+.lb-gg-view { position: absolute; inset: 0; }
+.lb-gg-label { position: absolute; left: 6px; bottom: -18px; font: 600 9px var(--lb-engr); letter-spacing: .14em; text-transform: uppercase; color: #b9ab95; }
+.lb-qnote { position: absolute; left: 16px; top: 14px; display: flex; flex-direction: column; gap: 2px; background: var(--lb-manila); color: #2b2216; padding: 8px 12px; border-radius: 3px; transform: rotate(-2deg); box-shadow: 0 4px 10px rgba(0,0,0,.45); font-size: 17px; max-width: 60%; }
+.lb-qnote small { font: 11px var(--ar-font-ui, sans-serif); opacity: .75; }
+.lb-qnote[hidden] { display: none; }
+.lb-bench-tools { position: absolute; left: 10px; bottom: 34px; display: flex; gap: 6px; flex-wrap: wrap; }
+.lb-spec { grid-column: 2; grid-row: 1 / span 2; padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
+.lb-plate { background: linear-gradient(160deg, #2a2b2e, #17181A); border: 2px solid var(--lb-brass); border-radius: 6px; padding: 10px 12px; font: 12px var(--lb-mono); font-variant-numeric: tabular-nums; box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 4px 10px rgba(0,0,0,.45); }
+.lb-plate-head { font: 700 11px var(--lb-engr); letter-spacing: .14em; color: var(--lb-brass-hi); margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lb-row { display: flex; justify-content: space-between; gap: 8px; padding: 2px 0; border-bottom: 1px solid rgba(237,232,220,.07); }
+.lb-row span { font: 600 10px var(--lb-engr); letter-spacing: .1em; color: #a99c86; }
+.lb-row b { font-weight: 600; color: var(--lb-engrave); }
+.lb-row.lb-stamp b { animation: lb-emboss .5s ease-out; }
+@keyframes lb-emboss { from { color: var(--lb-feet); text-shadow: 0 0 6px var(--lb-feet); } }
+.lb-flags { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 8px; }
+.lb-flags span { font: 700 9px var(--lb-engr); letter-spacing: .1em; padding: 2px 6px; border-radius: 3px; }
+.lb-flags .ok { background: #2f4a3a; color: #cfe8d6; }
+.lb-flags .bad { background: #6b1d16; color: #ffd8d0; }
+.lb-selects { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.lb-preset-list { display: flex; flex-direction: column; gap: 4px; }
+.lb-preset { all: unset; cursor: pointer; display: flex; justify-content: space-between; gap: 8px; padding: 6px 8px; border-radius: 4px; background: var(--lb-manila); color: #2b2216; font-size: 12px; }
+.lb-preset b { font: 600 12px "Courier New", monospace; }
+.lb-preset span { font: 11px var(--lb-mono); opacity: .8; white-space: nowrap; }
+.lb-preset:disabled { opacity: .45; cursor: default; }
+.lb-preset:focus-visible { outline: 2px solid var(--ar-focus, #AE97F2); }
+.lb-share { display: flex; gap: 6px; flex-wrap: wrap; }
+.lb-tray { grid-column: 1; grid-row: 2; display: flex; gap: 8px; padding: 10px; overflow-x: auto; background: radial-gradient(ellipse at 30% 0, #3b5b49, var(--lb-baize) 70%); margin: 10px 0 10px 10px; border-radius: 6px; box-shadow: inset 0 3px 10px rgba(0,0,0,.5); scrollbar-width: thin; }
+.lb-blank { all: unset; cursor: grab; flex: none; display: flex; flex-direction: column; align-items: center; gap: 2px; width: 74px; min-height: 64px; padding: 4px; border-radius: 6px; color: #dfeee9; font: 600 10px var(--lb-engr); letter-spacing: .05em; text-align: center; touch-action: none; }
+.lb-blank svg { width: 40px; height: 40px; fill: rgba(223,238,233,.35); stroke: #dfeee9; stroke-width: 1.2; }
+.lb-blank:hover { background: rgba(255,255,255,.06); }
+.lb-blank:disabled { opacity: .35; cursor: default; }
+.lb-blank:disabled::after { content: '🔒'; font-size: 10px; }
+.lb-blank:focus-visible { outline: 2px solid var(--ar-focus, #AE97F2); }
+.lb-stopblank svg { fill: #dfeee9; }
+.lb-glassmenu { position: fixed; z-index: 50; display: flex; flex-direction: column; background: #17181A; border: 1px solid var(--lb-brass); border-radius: 6px; padding: 4px; box-shadow: 0 8px 20px rgba(0,0,0,.6); }
+.lb-glassmenu button { all: unset; cursor: pointer; display: flex; align-items: center; gap: 8px; padding: 7px 10px; color: var(--lb-engrave); font-size: 13px; border-radius: 4px; min-height: 30px; }
+.lb-glassmenu button:hover, .lb-glassmenu button:focus-visible { background: #2a2b2e; }
+.lb-glassmenu button:disabled { opacity: .4; }
+.lb-glassmenu i { width: 14px; height: 14px; border-radius: 50%; display: inline-block; border: 1px solid #555; }
+.lb-glassmenu i.coat1 { background: linear-gradient(135deg, #5B3FA6, #AE97F2); }
+.lb-glassmenu i.coat2 { background: linear-gradient(135deg, #2f9e6a, #b48cf0); }
+.lb-glassmenu small { opacity: .6; font: 10px var(--lb-mono); }
+.lb-cardpad { background: #17181A; color: var(--lb-engrave); border: 2px solid var(--lb-brass); border-radius: 8px; padding: 14px; }
+.lb-cardpad canvas { width: min(256px, 70vw); height: min(256px, 70vw); touch-action: none; display: block; margin: 8px auto; border-radius: 50%; }
+.lb-cardpad div { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; }
+.lb-cardpad::backdrop { background: rgba(0,0,0,.6); }
+
+@media (max-width: 760px) {
+  .lb-bench { grid-template-columns: 1fr; grid-template-rows: 300px auto auto; overflow-y: auto; }
+  .lb-bench-tank { grid-column: 1; grid-row: 1; margin: 6px 6px 0; height: 300px; }
+  .lb-gg { width: 120px; height: 80px; aspect-ratio: auto; }
+  .lb-tray { grid-column: 1; grid-row: 2; margin: 6px; min-height: 76px; }
+  .lb-spec { grid-column: 1; grid-row: 3; overflow: visible; }
+  .lb-qnote { max-width: 55%; font-size: 15px; }
+}

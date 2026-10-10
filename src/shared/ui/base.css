@@ -1,0 +1,389 @@
+/* =====================================================================
+   Andrew-Rankin.com chrome: base.css
+   Reset, body, focus, buttons, switch, segmented, range, panel, dialog, toast, tooltip,
+   menu, kbd, stage, loader and fallback cards, view transitions.
+   Import after tokens.css on every page. Class prefix: ar-
+   ===================================================================== */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  background: var(--ar-bg);
+  color: var(--ar-ink);
+  accent-color: var(--game-accent, var(--ar-accent));
+}
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  background: var(--ar-bg);
+  color: var(--ar-ink);
+  font: var(--ar-w-regular) var(--ar-text-md)/var(--ar-leading-body) var(--ar-font-ui);
+  font-stretch: var(--ar-stretch-body);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Game pages never scroll; the hub (data-game="hub") and bare harness pages do. */
+html[data-game]:not([data-game="hub"]) body { overscroll-behavior: none; overflow: hidden; }
+
+h1, h2, h3, h4, p { margin: 0; }
+button, input, select, textarea { font: inherit; color: inherit; }
+img, svg, canvas, video { display: block; max-width: 100%; }
+a { color: var(--ar-accent); }
+::selection { background: var(--ar-selection); }
+
+:focus-visible { outline: 2px solid var(--ar-focus); outline-offset: 2px; }
+.ar-shell :focus-visible, .ar-on-film :focus-visible, .ar-toast :focus-visible { outline-color: var(--ar-focus-on-film); }
+
+.visually-hidden {
+  position: absolute !important; width: 1px; height: 1px; margin: -1px; padding: 0; border: 0;
+  overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap;
+}
+
+/* Skip link: hidden until focused, then a film-black pill at the top left. */
+.ar-skip {
+  position: fixed; left: 8px; top: 8px; z-index: calc(var(--ar-z-shell) + 1);
+  padding: 10px 16px; border-radius: 999px; background: var(--ar-film); color: var(--ar-on-film);
+  font: var(--ar-w-label) 0.8125rem/1 var(--ar-font-ui); font-stretch: var(--ar-stretch-label);
+  letter-spacing: var(--ar-tracking-label); text-transform: uppercase; text-decoration: none;
+  transform: translateY(-200%);
+}
+.ar-skip:focus { transform: none; }
+
+/* Edge printing: the only ALL-CAPS-plus-wide-tracking style. */
+.ar-edge {
+  font: var(--ar-w-bold) var(--ar-text-2xs)/1 var(--ar-font-ui);
+  font-stretch: var(--ar-stretch-edge);
+  letter-spacing: var(--ar-tracking-edge);
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+}
+
+.ar-mono { font-family: var(--ar-font-mono); font-weight: var(--ar-w-medium); font-variant-numeric: tabular-nums slashed-zero; }
+
+/* ---------------------------------------------------------------------
+   Stage
+   --------------------------------------------------------------------- */
+.ar-stage {
+  position: fixed;
+  inset: var(--ar-shell-total) 0 0 0;
+  overflow: hidden;
+  background: var(--ar-bg);
+  touch-action: none;
+  overscroll-behavior: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.ar-stage:focus, .ar-stage:focus-visible { outline: none; }
+.ar-stage--under-shell { inset: 0; }
+/* Fullscreen: the shell auto-hides, so the stage takes the whole screen (set by the shell). */
+html[data-fullscreen] .ar-stage { inset: 0; }
+
+/* ---------------------------------------------------------------------
+   Film strip material (shell bar, toasts, loaders, dialog header)
+   --------------------------------------------------------------------- */
+.ar-film-bg {
+  position: absolute; inset: 0; background: var(--ar-film); pointer-events: none;
+  --perf: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='8'%3E%3Crect x='4' y='1.5' width='8' height='5' rx='1.5'/%3E%3C/svg%3E");
+  -webkit-mask: linear-gradient(#000 0 0), var(--perf) left bottom / 16px 8px repeat-x;
+  -webkit-mask-composite: xor;
+          mask: linear-gradient(#000 0 0), var(--perf) left bottom / 16px 8px repeat-x;
+          mask-composite: exclude;
+}
+/* Toast variant: smaller holes along the top edge. */
+.ar-film-bg--top {
+  --perf: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='6'%3E%3Crect x='3' y='1' width='6' height='4' rx='1'/%3E%3C/svg%3E");
+  -webkit-mask: linear-gradient(#000 0 0), var(--perf) left top / 12px 6px repeat-x;
+  -webkit-mask-composite: xor;
+          mask: linear-gradient(#000 0 0), var(--perf) left top / 12px 6px repeat-x;
+          mask-composite: exclude;
+}
+
+/* ---------------------------------------------------------------------
+   Buttons
+   --------------------------------------------------------------------- */
+.ar-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  min-height: 40px; padding: 0 14px; position: relative;
+  font: var(--ar-w-label) 0.8125rem/1 var(--ar-font-ui); font-stretch: var(--ar-stretch-label);
+  letter-spacing: var(--ar-tracking-label); text-transform: uppercase; text-decoration: none; white-space: nowrap;
+  border-radius: var(--ar-radius-sm); border: 1.5px solid transparent; background: transparent; color: inherit;
+  cursor: pointer; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent;
+  transition: background-color var(--ar-dur-quick) var(--ar-ease-out), color var(--ar-dur-quick) var(--ar-ease-out),
+              translate var(--ar-dur-press) var(--ar-ease-out), box-shadow var(--ar-dur-press) var(--ar-ease-out);
+}
+.ar-btn:active:not(:disabled) { translate: 0 calc(1px * var(--ar-motion-scale)); box-shadow: inset 0 2px 0 rgb(0 0 0 / .14); }
+.ar-btn:disabled, .ar-btn[aria-disabled="true"] { opacity: .45; cursor: not-allowed; }
+.ar-btn svg { width: 20px; height: 20px; flex: none; }
+.ar-btn--primary { background: var(--ar-accent); color: var(--ar-on-accent); }
+.ar-btn--primary:hover:not(:disabled) { background: var(--ar-accent-hover); }
+.ar-btn--secondary { background: transparent; color: var(--ar-ink); border-color: var(--ar-line-strong); }
+.ar-btn--secondary:hover:not(:disabled) { background: var(--ar-accent-wash); }
+.ar-btn--ghost { background: transparent; color: var(--ar-ink-2); }
+.ar-btn--ghost:hover:not(:disabled) { background: var(--ar-accent-wash); color: var(--ar-ink); }
+.ar-btn--on-film { background: transparent; color: var(--ar-on-film); }
+.ar-btn--on-film:hover:not(:disabled) { background: var(--ar-film-2); }
+.ar-btn--on-film:active:not(:disabled) { background: var(--ar-film-3); box-shadow: none; }
+.ar-btn--on-film[aria-pressed="true"] { background: var(--ar-film-3); }
+.ar-btn--icon { min-width: var(--ar-tap); min-height: var(--ar-tap); padding: 0; }
+.ar-btn--sm { min-height: 32px; padding: 0 10px; }
+.ar-btn--sm::after { content: ""; position: absolute; inset: -6px; }
+.ar-btn--lg { min-height: 48px; padding: 0 18px; }
+
+/* ---------------------------------------------------------------------
+   Switch
+   --------------------------------------------------------------------- */
+.ar-switch {
+  display: inline-flex; align-items: center; gap: 10px; min-height: var(--ar-tap); padding: 0; border: 0; background: none;
+  color: var(--ar-ink); cursor: pointer; -webkit-tap-highlight-color: transparent; font: var(--ar-w-medium) var(--ar-text-sm)/1.2 var(--ar-font-ui);
+}
+.ar-switch__track {
+  position: relative; flex: none; width: 36px; height: 20px; border-radius: 999px; background: var(--ar-surface-2);
+  border: 1.5px solid var(--ar-line-strong); transition: background-color var(--ar-dur-base) var(--ar-ease-out), border-color var(--ar-dur-base) var(--ar-ease-out);
+}
+.ar-switch__knob {
+  position: absolute; left: 2px; top: 50%; width: 14px; height: 14px; margin-top: -7px; border-radius: 50%;
+  background: var(--ar-ink); transition: translate var(--ar-dur-base) var(--ar-ease-settle), background-color var(--ar-dur-base) var(--ar-ease-out);
+}
+.ar-switch[aria-checked="true"] .ar-switch__track { background: var(--game-accent, var(--ar-accent)); border-color: var(--game-accent, var(--ar-accent)); }
+.ar-switch[aria-checked="true"] .ar-switch__knob { translate: 16px 0; background: var(--ar-surface); }
+.ar-switch:disabled { opacity: .45; cursor: not-allowed; }
+
+/* ---------------------------------------------------------------------
+   Segmented control
+   --------------------------------------------------------------------- */
+.ar-seg { display: inline-flex; border: 1.5px solid var(--ar-line-strong); border-radius: var(--ar-radius-sm); overflow: hidden; background: var(--ar-surface); }
+.ar-seg__opt {
+  min-height: 36px; padding: 0 14px; border: 0; background: transparent; color: var(--ar-ink); cursor: pointer;
+  font: var(--ar-w-label) 0.8125rem/1 var(--ar-font-ui); font-stretch: var(--ar-stretch-label); letter-spacing: var(--ar-tracking-label);
+  text-transform: uppercase; -webkit-tap-highlight-color: transparent;
+  transition: background-color var(--ar-dur-quick) var(--ar-ease-out), color var(--ar-dur-quick) var(--ar-ease-out);
+}
+.ar-seg__opt + .ar-seg__opt { border-left: 1.5px solid var(--ar-line-strong); }
+.ar-seg__opt:hover { background: var(--ar-accent-wash); }
+.ar-seg__opt[aria-checked="true"] { background: var(--ar-ink); color: var(--ar-surface); }
+.ar-seg__opt:focus-visible { outline-offset: -3px; }
+@media (pointer: coarse) { .ar-seg__opt { min-height: var(--ar-tap); } }
+
+/* ---------------------------------------------------------------------
+   Range
+   --------------------------------------------------------------------- */
+.ar-range-wrap { display: inline-flex; align-items: center; gap: 12px; width: 100%; }
+.ar-range-value { min-width: 4.5ch; text-align: right; font: var(--ar-w-medium) 0.8125rem/1 var(--ar-font-mono); font-variant-numeric: tabular-nums slashed-zero; color: var(--ar-ink-2); }
+input[type="range"].ar-range {
+  --fill: 50%;
+  -webkit-appearance: none; appearance: none; flex: 1; min-width: 0; height: var(--ar-tap); margin: 0; padding: 0; background: transparent; cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+input[type="range"].ar-range::-webkit-slider-runnable-track {
+  height: 4px; border-radius: 999px; outline: 1px solid var(--ar-line-strong); outline-offset: 0;
+  background: linear-gradient(to right, var(--game-accent, var(--ar-accent)) var(--fill), var(--ar-surface-2) var(--fill));
+}
+input[type="range"].ar-range::-moz-range-track {
+  height: 4px; border-radius: 999px; outline: 1px solid var(--ar-line-strong);
+  background: linear-gradient(to right, var(--game-accent, var(--ar-accent)) var(--fill), var(--ar-surface-2) var(--fill));
+}
+input[type="range"].ar-range::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none; width: 18px; height: 18px; margin-top: -7px; border-radius: 50%;
+  background: var(--ar-ink); border: 3px solid var(--ar-surface); box-shadow: var(--ar-shadow-1);
+  transition: scale var(--ar-dur-press) var(--ar-ease-out);
+}
+input[type="range"].ar-range::-moz-range-thumb {
+  width: 12px; height: 12px; border-radius: 50%; background: var(--ar-ink); border: 3px solid var(--ar-surface); box-shadow: var(--ar-shadow-1);
+}
+input[type="range"].ar-range:active::-webkit-slider-thumb { scale: 1.22; }
+input[type="range"].ar-range:disabled { opacity: .45; cursor: not-allowed; }
+.ar-range--detent { background-image: repeating-linear-gradient(to right, var(--ar-line-strong) 0 1px, transparent 1px calc(100% / var(--detents, 10))); background-size: calc(100% - 18px) 6px; background-position: 9px calc(50% + 8px); background-repeat: no-repeat; }
+
+/* ---------------------------------------------------------------------
+   Panel and edge-labelled headers
+   --------------------------------------------------------------------- */
+.ar-panel {
+  position: relative; padding: 16px; border-radius: var(--ar-radius-md); border: 1px solid var(--ar-line);
+  background: var(--ar-surface); color: var(--ar-ink); box-shadow: var(--ar-shadow-2);
+}
+@media (min-width: 640px) { .ar-panel { padding: 20px; } }
+.ar-panel__edge { color: var(--ar-ink-3); display: block; margin-bottom: 4px; }
+.ar-panel__title { font: var(--ar-w-semibold) var(--ar-text-lg)/var(--ar-leading-snug) var(--ar-font-display); font-variation-settings: 'SOFT' 50; letter-spacing: -0.01em; }
+
+/* ---------------------------------------------------------------------
+   kbd
+   --------------------------------------------------------------------- */
+kbd, .ar-kbd {
+  display: inline-block; padding: 1px 6px; border: 1px solid var(--ar-line-strong); border-bottom-width: 2px; border-radius: 4px;
+  background: var(--ar-surface); color: var(--ar-ink); font: var(--ar-w-medium) 0.75rem/1.4 var(--ar-font-mono); white-space: nowrap;
+}
+
+/* ---------------------------------------------------------------------
+   Dialog: the datasheet
+   --------------------------------------------------------------------- */
+dialog.ar-dialog {
+  width: min(560px, calc(100vw - 32px)); max-width: none; max-height: min(80dvh, 720px); margin: auto; padding: 0;
+  border: 1px solid var(--ar-line); border-radius: var(--ar-radius-lg); background: var(--ar-surface); color: var(--ar-ink);
+  box-shadow: var(--ar-shadow-3); overflow: hidden; flex-direction: column;
+}
+dialog.ar-dialog[open] { display: flex; animation: ar-rise var(--ar-dur-base) var(--ar-ease-out) both; }
+dialog.ar-dialog--wide { width: min(760px, calc(100vw - 32px)); }
+dialog.ar-dialog::backdrop { background: var(--ar-scrim); animation: ar-fade var(--ar-dur-base) var(--ar-ease-out) both; }
+dialog.ar-dialog[data-closing] { animation: ar-sink 160ms var(--ar-ease-in) both; }
+dialog.ar-dialog[data-closing]::backdrop { animation: ar-fade-out 160ms linear both; }
+.ar-dialog__head {
+  position: relative; flex: none; display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  height: 40px; padding: 0 4px 8px 16px; color: var(--ar-edge-print);
+}
+.ar-dialog__head > :not(.ar-film-bg) { position: relative; }
+.ar-dialog__edge { color: var(--ar-edge-print); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ar-dialog__head .ar-btn { min-width: 36px; min-height: 32px; }
+.ar-dialog__head .ar-btn::after { content: ""; position: absolute; inset: -6px; }
+.ar-dialog__body { flex: 1 1 auto; min-height: 0; overflow: auto; padding: 20px 20px 8px; overscroll-behavior: contain; }
+.ar-dialog__title { font: var(--ar-w-semibold) var(--ar-text-xl)/var(--ar-leading-tight) var(--ar-font-display); font-variation-settings: 'SOFT' 50; letter-spacing: -0.015em; margin-bottom: 8px; }
+.ar-dialog__body p { max-width: var(--ar-measure); }
+.ar-dialog__body p + p, .ar-dialog__body p + .ar-table-wrap, .ar-dialog__body .ar-table-wrap + h3, .ar-dialog__body .ar-table-wrap + ul { margin-top: 12px; }
+.ar-dialog__body h3 { margin: 18px 0 6px; color: var(--ar-ink-3); }
+.ar-dialog__body ul { margin: 6px 0 0; padding-left: 1.2em; }
+.ar-dialog__body li { margin: 4px 0; max-width: var(--ar-measure); }
+.ar-dialog__foot { flex: none; display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 8px; padding: 12px 20px 16px; }
+
+.ar-table-wrap { overflow-x: auto; }
+.ar-controls { width: 100%; border-collapse: collapse; font-size: var(--ar-text-sm); }
+.ar-controls th, .ar-controls td { text-align: left; vertical-align: top; padding: 8px 10px 8px 0; border-bottom: 1px solid var(--ar-line); }
+.ar-controls th { color: var(--ar-ink-3); font: var(--ar-w-bold) var(--ar-text-2xs)/1.2 var(--ar-font-ui); font-stretch: var(--ar-stretch-edge); letter-spacing: var(--ar-tracking-edge); text-transform: uppercase; }
+.ar-controls td:first-child { font-weight: var(--ar-w-semibold); color: var(--ar-ink); }
+@media (max-width: 639px) {
+  .ar-controls .ar-col-mouse { display: none; }
+}
+
+@keyframes ar-rise { from { opacity: 0; translate: 0 calc(12px * var(--ar-motion-scale)); } to { opacity: 1; translate: 0 0; } }
+@keyframes ar-sink { from { opacity: 1; translate: 0 0; } to { opacity: 0; translate: 0 calc(4px * var(--ar-motion-scale)); } }
+@keyframes ar-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes ar-fade-out { from { opacity: 1; } to { opacity: 0; } }
+
+/* ---------------------------------------------------------------------
+   Toast
+   --------------------------------------------------------------------- */
+.ar-toast-region {
+  position: fixed; left: 0; right: 0; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); z-index: var(--ar-z-toast);
+  display: flex; justify-content: center; padding: 0 16px; pointer-events: none;
+}
+.ar-toast {
+  position: relative; max-width: min(420px, calc(100vw - 32px)); padding: 14px 16px 10px; border-radius: 6px; color: var(--ar-on-film);
+  font: var(--ar-w-medium) var(--ar-text-sm)/1.3 var(--ar-font-ui); display: flex; align-items: center; gap: 10px; pointer-events: auto;
+  animation: ar-toast-in var(--ar-dur-base) var(--ar-ease-develop) both;
+}
+.ar-toast > :not(.ar-film-bg) { position: relative; }
+.ar-toast[data-leaving] { animation: ar-toast-out 160ms var(--ar-ease-in) both; }
+.ar-toast__dot { flex: none; width: 8px; height: 8px; border-radius: 50%; background: var(--game-accent-lit, var(--ar-grease-red-lit)); }
+.ar-toast[data-kind="success"] .ar-toast__dot { background: #72C792; }
+.ar-toast[data-kind="error"] .ar-toast__dot { background: #FF7A6E; }
+@keyframes ar-toast-in {
+  from { opacity: 0; translate: 0 calc(8px * var(--ar-motion-scale)); filter: brightness(0.15) contrast(1.4); }
+  to { opacity: 1; translate: 0 0; filter: none; }
+}
+@keyframes ar-toast-out { from { opacity: 1; } to { opacity: 0; } }
+
+/* ---------------------------------------------------------------------
+   Tooltip and menu
+   --------------------------------------------------------------------- */
+.ar-tip {
+  position: fixed; z-index: var(--ar-z-popover); left: 0; top: 0; max-width: 240px; padding: 4px 8px; border-radius: 4px;
+  background: var(--ar-film); color: var(--ar-on-film); font: var(--ar-w-medium) 0.75rem/1.3 var(--ar-font-ui);
+  pointer-events: none; opacity: 0; transition: opacity var(--ar-dur-quick) var(--ar-ease-out); white-space: nowrap;
+}
+.ar-tip[data-open] { opacity: 1; }
+.ar-tip kbd { margin-left: 6px; background: var(--ar-film-2); color: var(--ar-on-film); border-color: var(--ar-film-3); }
+
+.ar-menu {
+  position: fixed; z-index: var(--ar-z-popover); margin: 0; min-width: 200px; max-width: calc(100vw - 16px); padding: 6px;
+  border: 1px solid var(--ar-line); border-radius: var(--ar-radius-md); background: var(--ar-surface); color: var(--ar-ink); box-shadow: var(--ar-shadow-2);
+  inset: auto; animation: ar-rise var(--ar-dur-base) var(--ar-ease-out) both;
+}
+.ar-menu:popover-open { display: block; }
+.ar-menu__item {
+  display: flex; align-items: center; gap: 12px; width: 100%; min-height: var(--ar-tap); padding: 0 12px; border: 0; border-radius: var(--ar-radius-sm);
+  background: transparent; color: inherit; text-align: left; cursor: pointer; font: var(--ar-w-medium) var(--ar-text-sm)/1.2 var(--ar-font-ui);
+  -webkit-tap-highlight-color: transparent;
+}
+.ar-menu__item svg { width: 20px; height: 20px; flex: none; }
+.ar-menu__item:hover:not(:disabled), .ar-menu__item:focus-visible { background: var(--ar-accent-wash); outline: none; }
+.ar-menu__item:focus-visible { box-shadow: inset 0 0 0 2px var(--ar-focus); }
+.ar-menu__item:disabled { opacity: .45; cursor: not-allowed; }
+.ar-menu__check { margin-left: auto; width: 20px; height: 20px; color: var(--ar-accent); }
+
+/* ---------------------------------------------------------------------
+   Loader: film winding on
+   --------------------------------------------------------------------- */
+.ar-loader {
+  position: absolute; inset: 0; z-index: calc(var(--ar-z-hud) + 5); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
+  background: var(--ar-film); color: var(--ar-edge-print); opacity: 1;
+}
+.ar-loader[data-hidden] { opacity: 0; visibility: hidden; }
+.ar-loader[data-leaving] { opacity: 0; transition: opacity var(--ar-dur-develop) var(--ar-ease-develop), filter var(--ar-dur-develop) var(--ar-ease-develop); filter: brightness(1.7) contrast(0.45); pointer-events: none; }
+.ar-loader__strip { position: relative; width: 240px; height: 28px; overflow: hidden; }
+.ar-loader__strip::before, .ar-loader__strip::after {
+  content: ""; position: absolute; left: 0; width: calc(100% + 16px); height: 8px; background: var(--ar-film-3);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='8'%3E%3Crect x='4' y='1.5' width='8' height='5' rx='1.5'/%3E%3C/svg%3E") left center / 16px 8px repeat-x;
+          mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='8'%3E%3Crect x='4' y='1.5' width='8' height='5' rx='1.5'/%3E%3C/svg%3E") left center / 16px 8px repeat-x;
+  animation: ar-wind 0.3333s linear infinite;
+}
+.ar-loader__strip::before { top: 2px; }
+.ar-loader__strip::after { bottom: 2px; }
+.ar-loader__frame { position: absolute; inset: 8px 0; margin: auto; height: 12px; width: 96px; border: 1px solid var(--ar-film-3); background: var(--ar-film-2); border-radius: 1px; }
+@keyframes ar-wind { from { translate: 0 0; } to { translate: -16px 0; } }
+:root[data-motion="reduce"] .ar-loader__strip::before, :root[data-motion="reduce"] .ar-loader__strip::after { animation: none; }
+@media (prefers-reduced-motion: reduce) { .ar-loader__strip::before, .ar-loader__strip::after { animation: none; } }
+.ar-loader__label { color: var(--ar-edge-print); }
+.ar-loader__count { font: var(--ar-w-medium) 0.8125rem/1 var(--ar-font-mono); font-variant-numeric: tabular-nums; color: var(--ar-on-film-2); }
+
+/* ---------------------------------------------------------------------
+   Fallback cards: no WebGL2, and the film jammed
+   --------------------------------------------------------------------- */
+.ar-card-wrap { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 16px; overflow: auto; background: var(--ar-bg); z-index: calc(var(--ar-z-hud) + 6); }
+.ar-card {
+  position: relative; width: min(520px, 100%); border-radius: var(--ar-radius-lg); border: 1px solid var(--ar-line); background: var(--ar-surface);
+  color: var(--ar-ink); box-shadow: var(--ar-shadow-3); overflow: hidden; touch-action: auto; user-select: text; -webkit-user-select: text;
+}
+.ar-card__head { position: relative; height: 40px; display: flex; align-items: center; padding: 0 16px 8px; color: var(--ar-edge-print); }
+.ar-card__head > :not(.ar-film-bg) { position: relative; }
+.ar-card__body { padding: 20px; }
+.ar-card__title { font: var(--ar-w-semibold) var(--ar-text-xl)/var(--ar-leading-tight) var(--ar-font-display); font-variation-settings: 'SOFT' 50; letter-spacing: -0.015em; margin-bottom: 8px; }
+.ar-card__body p { max-width: var(--ar-measure); }
+.ar-card__actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+.ar-card details { margin-top: 14px; color: var(--ar-ink-3); font-size: var(--ar-text-sm); }
+.ar-card summary { cursor: pointer; }
+.ar-card pre { margin: 8px 0 0; padding: 10px; border-radius: var(--ar-radius-sm); background: var(--ar-surface-2); font: var(--ar-w-regular) 0.75rem/1.4 var(--ar-font-mono); white-space: pre-wrap; word-break: break-word; max-height: 160px; overflow: auto; }
+
+/* ---------------------------------------------------------------------
+   Drop target highlight (games add this class through onFileDrop { hoverClass })
+   --------------------------------------------------------------------- */
+.ar-drop-hover { outline: 2px dashed var(--ar-focus); outline-offset: -6px; }
+
+/* ---------------------------------------------------------------------
+   Cross-document view transitions: the contact-sheet "enlargement" (art-direction §9)
+   --------------------------------------------------------------------- */
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition { navigation: auto; }
+  ::view-transition-group(*) { animation-duration: var(--ar-dur-slow); animation-timing-function: var(--ar-ease-out); }
+  [data-game="texturedle"] #stage { view-transition-name: frame-texturedle; }
+  [data-game="darkroom"] #stage { view-transition-name: frame-darkroom; }
+  [data-game="plates"] #stage { view-transition-name: frame-plates; }
+  [data-game="latent"] #stage { view-transition-name: frame-latent; }
+  [data-game="lensbench"] #stage { view-transition-name: frame-lensbench; }
+  [data-game="studio"] #stage { view-transition-name: frame-studio; }
+}
+
+/* ---------------------------------------------------------------------
+   Grain overlay (installGrain sets --ar-grain; games switch it off with <html data-grain="off">)
+   --------------------------------------------------------------------- */
+body::before {
+  content: ""; position: fixed; inset: 0; z-index: var(--ar-z-toast); pointer-events: none;
+  background: var(--ar-grain, none); background-size: 192px 192px; opacity: var(--ar-grain-opacity); mix-blend-mode: var(--ar-grain-blend);
+}
+html[data-grain="off"] body::before { display: none; }
+
+@media (forced-colors: active) {
+  body::before, .ar-film-bg { display: none; }
+  .ar-shell, .ar-toast, .ar-tip { border: 1px solid CanvasText; background: Canvas; color: CanvasText; }
+  :focus-visible { outline-color: Highlight; }
+}
