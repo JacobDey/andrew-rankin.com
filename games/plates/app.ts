@@ -66,8 +66,11 @@ export async function createApp(deps: AppDeps): Promise<PlatesApp> {
   const { stage, test } = deps
   const root = document.createElement('div'); root.className = 'pl-root'
   stage.appendChild(root)
+  let hintMsg = ''
+  const hintEl = document.createElement('div'); hintEl.className = 'pl-hint'; hintEl.hidden = true; hintEl.setAttribute('aria-live', 'polite')
   const canvas = document.createElement('canvas'); canvas.className = 'pl-canvas'; canvas.setAttribute('aria-label', 'The darkroom'); canvas.tabIndex = 0
   root.appendChild(canvas)
+  root.appendChild(hintEl)
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, alpha: false, powerPreference: 'high-performance', preserveDrawingBuffer: test })
   renderer.outputColorSpace = THREE.SRGBColorSpace
   renderer.toneMapping = THREE.NoToneMapping
@@ -457,6 +460,14 @@ export async function createApp(deps: AppDeps): Promise<PlatesApp> {
       else if (rig.tray === 'dev' && !taught.has('rock') && bench.where('p00').kind === 'tray') show(bench.focusTarget('dev'))
       else show(null)
     } else hud.ghost(0, 0, false)
+    {
+      let msg = ''
+      if (!test && screen === 'bench' && !table.isOpen && !book.isOpen) {
+        if (!bench.opened.has(1)) msg = rig.station === 'shelf' ? 'Tap the tin to open the first bundle.' : 'The tin is on the Shelf. Tap Shelf below.'
+        else if (!taught.has('rock')) msg = rig.tray === 'dev' && bench.where('p00').kind === 'tray' ? 'Drag across the tray to rock the developer. Stop when the eighth square shows.' : 'Click a plate in the tin, then click the left tray to lay it in the developer.'
+      }
+      if (hintMsg !== msg) { hintMsg = msg; hintEl.textContent = msg; hintEl.hidden = !msg }
+    }
     // render
     const t1 = performance.now()
     const overlay = (book.isOpen || docOpen()) && !test
@@ -540,6 +551,7 @@ export async function createApp(deps: AppDeps): Promise<PlatesApp> {
     begin() {
       if (screen !== 'title') return
       screen = 'bench'
+      if (!bench.opened.has(1)) void app.setStation('shelf')
       void import('@shared/audio').then((a) => { a.Audio.play('plates.fogBell'); a.Audio.play('plates.arrival') }).catch(() => undefined)
       audio?.start()
       if (!resumed && !taught.has('letters')) {

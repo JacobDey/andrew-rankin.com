@@ -968,6 +968,7 @@ export function installCamera(e: Engine, ph: Physics, st: Studio, input: Input):
     st.rooms.locked = on
     hud.cameraButton.setAttribute('aria-pressed', String(on))
     hud.el.querySelector('.st-pocketwrap')?.toggleAttribute('hidden', on)
+    hud.el.classList.toggle('st-hud--finder', on)
     if (on) {
       if (!roll()) loadFilm()
       refreshUI()
@@ -977,7 +978,7 @@ export function installCamera(e: Engine, ph: Physics, st: Studio, input: Input):
       e.renderOverride = null
       Audio.setMuffle(null)
     }
-    hud.setCableRelease(!handheld && e.room === 'yard')
+    hud.setCableRelease(!on && !handheld && e.room === 'yard')
   }
   const tmpV4 = new THREE.Vector4()
   const renderFinder = () => {
@@ -1150,7 +1151,7 @@ export function installCamera(e: Engine, ph: Physics, st: Studio, input: Input):
     handheld = on
     tripod.visible = true
     camBody.visible = !on
-    hud.setCableRelease(!on && e.room === 'yard')
+    hud.setCableRelease(!finderOn && !on && e.room === 'yard')
     refreshUI()
   }
   const setBuild = (b: CameraBuild): CameraSpec => {

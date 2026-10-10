@@ -133,3 +133,7 @@
 .li-records input { width: min(420px, 100%); background: #1A0E00; color: #FFB000; border: 1.5px solid #FFB000; font: 600 16px var(--ar-font-mono); padding: 8px; text-transform: uppercase; }
 .li-records button { display: block; background: none; border: 0; color: #FFB000; font: inherit; text-align: left; padding: 6px 0; cursor: pointer; }
 .li-records div > div { white-space: pre-wrap; }
+
+/* poster mode (?embed=poster): no chrome, just the lit darkroom */
+.li-poster .li-rail, .li-poster .li-controls, .li-poster .li-phone, .li-poster .li-clock, .li-poster .li-nosave { display: none !important; }
+.li-poster #stage { top: 0 !important; padding-top: 0 !important; inset: 0 !important; height: 100vh !important; }

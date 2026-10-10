@@ -159,6 +159,14 @@ export async function startDarkroom(d: StartDeps): Promise<void> {
   await new Promise((r) => requestAnimationFrame(() => r(null)))
   platform.markReady()
   if (firstRun && !poster) notes.firstRun()
+  if (poster) {
+    paused = false
+    await api.poster()
+    paused = true
+    document.querySelectorAll('.dr-hud, .dr-notes, .dr-anchors').forEach((el) => ((el as HTMLElement).style.display = 'none'))
+    for (let i = 0; i < 3; i++) { view.frame(0, world); await new Promise((r) => requestAnimationFrame(() => r(null))) }
+    ;(window as unknown as { __game: { posterReady?: boolean } }).__game.posterReady = true
+  }
   const st = (new URLSearchParams(location.search).get('station') ?? '') as StationId
   if (STATIONS.some((s) => s.id === st)) hud.setStation(st)
 }

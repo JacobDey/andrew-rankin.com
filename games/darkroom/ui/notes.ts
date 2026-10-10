@@ -35,9 +35,17 @@ export function createNotes(stage: HTMLElement, view: View, _platform: Platform,
     },
     firstRun() {
       notes.show({ id: 'rock', text: 'rock me', anchor: 'trayRim:dev', dy: 18, dx: -90 })
-      const pull = h('div', { className: 'dr-pull', textContent: 'pull' })
+      stage.classList.add('dr-intro')
+      const pull = h('div', { className: 'dr-pull', textContent: '← pull' })
       stage.querySelector('.dr-switchplate')?.appendChild(pull)
-      const off = bus.on('chain', () => { pull.remove(); off() })
+      const invite = h('button', { className: 'dr-invite', type: 'button', 'aria-label': 'Pull the safelight chain' },
+        h('span', { className: 'dr-invite__big', textContent: 'It is dark in here.' }),
+        h('span', { className: 'dr-invite__small', textContent: 'Pull the safelight chain, top left. Tap here to pull it.' }))
+      invite.addEventListener('click', () => (stage.querySelector('.dr-chain') as HTMLButtonElement | null)?.click())
+      stage.appendChild(invite)
+      const done = () => { pull.remove(); invite.remove(); stage.classList.remove('dr-intro') }
+      const off = bus.on('chain', () => { done(); off() })
+      const off2 = bus.on('light', (e) => { if (e.on) { done(); off2() } })
       bus.on('light', (e) => {
         if (e.id === 'room' && e.on) notes.show({ id: 'line', text: 'Everything goes on the line. Especially the bad ones.', anchor: 'line', dy: 40 })
       })

@@ -195,7 +195,22 @@ function wireCommon(o: { fullscreen: HTMLElement | null; showLights: boolean }):
   }
 }
 
+/** Cross-document view transitions can be skipped (hidden tab, reload, dev reload); swallow the rejected promises. */
+let vtGuarded = false
+function guardViewTransitions(): void {
+  if (vtGuarded || typeof window === 'undefined') return
+  vtGuarded = true
+  const quiet = (vt: unknown): void => {
+    const t = vt as { ready?: Promise<unknown>; finished?: Promise<unknown>; updateCallbackDone?: Promise<unknown> } | null | undefined
+    if (!t) return
+    for (const k of ['ready', 'finished', 'updateCallbackDone'] as const) t[k]?.catch?.(() => {})
+  }
+  window.addEventListener('pagereveal', (e) => quiet((e as unknown as { viewTransition?: unknown }).viewTransition))
+  window.addEventListener('pageswap', (e) => quiet((e as unknown as { viewTransition?: unknown }).viewTransition))
+}
+
 function prepareDocument(slug: GameSlug | 'hub'): { poster: boolean } {
+  guardViewTransitions()
   const html = document.documentElement
   const poster = flags().embed === 'poster'
   if (!html.getAttribute('data-game')) html.setAttribute('data-game', slug)
@@ -596,7 +611,7 @@ const BRAND_MARK = `<svg class="ar-shell__mark" xmlns="http://www.w3.org/2000/sv
 <rect x="4" y="8" width="24" height="16" rx="1.5" fill="#EAE3D6"/><path d="M7.2 16.6c-.3-4 4.2-6.6 9.4-6.4 5 .2 8.6 2.6 8.2 5.8-.4 3.4-4.8 5.4-9.6 5.2-4.6-.2-8.4-2.2-7.6-5.4.4-1.6 2-2.8 3.6-3.4" fill="none" stroke="#D23A2A" stroke-width="2.2" stroke-linecap="round"/></svg>`
 
 /** The hub's shell: brand mark and RANKIN 400 · ROLL 01 on the left, loupe, sound and lights on the right. */
-export function mountHubShell(opts: { onLoupeToggle?(on: boolean): void } = {}): Shell {
+export function mountHubShell(opts: { onLoupeToggle?(on: boolean): void; initialLoupe?: boolean } = {}): Shell {
   const { poster } = prepareDocument('hub')
   const disposers: UnsubFn[] = []
 
@@ -626,7 +641,7 @@ export function mountHubShell(opts: { onLoupeToggle?(on: boolean): void } = {}):
   let loupeBtn: HTMLButtonElement | null = null
   if (matchMedia('(pointer: fine)').matches) {
     loupeBtn = iconButton('loupe', 'Loupe', 'ar-shell__loupe')
-    loupeBtn.setAttribute('aria-pressed', 'false')
+    loupeBtn.setAttribute('aria-pressed', String(!!opts.initialLoupe))
     const lb = loupeBtn
     lb.addEventListener('click', () => {
       const on = lb.getAttribute('aria-pressed') !== 'true'

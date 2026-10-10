@@ -224,6 +224,7 @@ export function createDarkroomStation(app: App, ps: PrintSession, film: FilmProc
     else if (l === 'safe') { setLights('white'); app.screen.flash = app.reduced() ? 0.3 : 0.7; app.sfx('latent.clunk') }
     else { setLights('safe'); app.sfx('latent.clunk') }
     app.applyPalette()
+    layout()
     rebuild()
   }
 
@@ -245,6 +246,7 @@ export function createDarkroomStation(app: App, ps: PrintSession, film: FilmProc
     knob = { x: column.x + 70, y: headY() + 30, r: 16 }
     safeR = { x: P.x + P.w * (phone ? 0.78 : 0.62), y: top, w: 50, h: 34 }
     chain.ax = safeR.x + 34; chain.ay = safeR.y + safeR.h
+    if (lights() === 'off') { chain.ax = Math.round(w / 2 - 30); chain.ay = Math.round(h * 0.3 - 54) }
     chainReset()
     const T = panes[2]
     const tw = Math.min(T.w - 30, ((T.h - ctlH - 150) * 4) / 3)
@@ -288,7 +290,7 @@ export function createDarkroomStation(app: App, ps: PrintSession, film: FilmProc
       const hC = fl.h[k]
       const hx = fl.h[gj * nx + Math.min(nx - 1, gi + 1)] - fl.h[gj * nx + Math.max(0, gi - 1)]
       const hy = fl.h[Math.min(ny - 1, gj + 1) * nx + gi] - fl.h[Math.max(0, gj - 1) * nx + gi]
-      let v = 0.8 // tray floor (white enamel)
+      let v = 0.96 // tray floor (white enamel)
       if (inThis) {
         const px = (tx + hx * 0.6 - s!.x) / 0.254 + 0.5, py = (ty + hy * 0.6 - s!.y) / 0.203 + 0.5
         if (px >= 0 && px < 1 && py >= 0 && py < 1) {
@@ -298,7 +300,7 @@ export function createDarkroomStation(app: App, ps: PrintSession, film: FilmProc
       }
       // liquid: darker where deep, a specular streak from the swinging safelight
       const depth = hC / 0.012
-      v *= hC > 0.0005 ? 0.9 - 0.04 * Math.min(2, depth) : 1
+      v *= hC > 0.0005 ? 0.97 - 0.015 * Math.min(2, depth) : 1
       const spec = Math.max(0, (hx * (0.6 + swing) - hy) * 120)
       v = Math.min(1, v + spec * spec * 0.9)
       const c = Math.round(v * 255)
@@ -407,13 +409,13 @@ export function createDarkroomStation(app: App, ps: PrintSession, film: FilmProc
       }
       if (l === 'off') {
         g.fillStyle = '#000'; g.fillRect(0, 0, w, h)
-        drawChain(g, 0.7)
+        drawChain(g, 1, 1.8)
         return
       }
       // walls, bench, the safelight's moving light
       const lx = safeR.x + 25 + Math.sin(pend.th) * 90
       const gr = g.createRadialGradient(lx, safeR.y + 60, 20, lx, safeR.y + 60, Math.max(w, h) * 0.9)
-      gr.addColorStop(0, gray(l === 'white' ? 0.9 : 0.2)); gr.addColorStop(0.5, gray(l === 'white' ? 0.8 : 0.07)); gr.addColorStop(1, gray(l === 'white' ? 0.7 : 0.02))
+      gr.addColorStop(0, gray(l === 'white' ? 0.9 : 0.12)); gr.addColorStop(0.5, gray(l === 'white' ? 0.8 : 0.03)); gr.addColorStop(1, gray(l === 'white' ? 0.7 : 0))
       g.fillStyle = gr; g.fillRect(0, 0, w, h)
       g.fillStyle = gray(l === 'white' ? 0.6 : 0.1); g.fillRect(0, h * 0.72, w, 3)
       // ---- enlarger pane ----
@@ -500,7 +502,7 @@ export function createDarkroomStation(app: App, ps: PrintSession, film: FilmProc
         g.save(); g.translate(tank.x + tank.w / 2, tank.y + tank.h / 2); g.rotate(film.tankAngle); g.fillStyle = gray(0.42); g.fillRect(-tank.w / 2, -tank.h / 2, tank.w, tank.h); g.fillStyle = gray(0.2); g.fillRect(-tank.w / 2 - 4, -tank.h / 2 - 6, tank.w + 8, 10); g.restore()
         g.fillStyle = gray(0.35); g.fillRect(F.x + F.w * 0.36, F.y + F.h * 0.4, 30, 44)
         if (film.phase === 'shelf') { g.fillStyle = gray(0.55); g.fillRect(F.x + 30, F.y + F.h * 0.52 - 30, 22, 30) }
-        g.fillStyle = gray(0.7); g.fillRect(F.x + 14, F.y + 20, F.w - 28, Math.min(150, F.h * 0.26))
+        g.fillStyle = gray(1); g.fillRect(F.x + 14, F.y + 20, F.w - 28, Math.min(150, F.h * 0.26))
         g.fillStyle = gray(0.14); g.fillRect(F.x + 14, F.y + F.h * 0.6, F.w - 28, 40)
       }
       // ---- trays pane ----
@@ -527,7 +529,7 @@ export function createDarkroomStation(app: App, ps: PrintSession, film: FilmProc
         return
       }
       if (l === 'off') {
-        crispText(g, OPENING.pull, chain.ax + 20, chain.ay + 60, phone ? 22 : 20, PALETTES.latentTerminal.light, { weight: 600 })
+        crispText(g, OPENING.pull + ' THE CHAIN', chain.ax + 24, chain.ay + 108, phone ? 22 : 20, PALETTES.latentTerminal.light, { weight: 600 })
         return
       }
       const ink = pal.ink, light = pal.light
@@ -538,7 +540,7 @@ export function createDarkroomStation(app: App, ps: PrintSession, film: FilmProc
           const cx = Math.max(P.x + 6, column.x - 150), cy = column.y + 40
           g.fillStyle = light; g.fillRect(cx, cy, 160, 92)
           g.font = "600 17px 'Caveat Variable', cursive"
-          const lines = wrap(g, OPENING.startCard, 148)
+          const lines = wrap(g, phone ? 'Start here. The first print is already in the easel. Tap Into DEV, rock the tray gently, and wait for it. — R.K.' : OPENING.startCard, 148)
           lines.forEach((s, i) => crispText(g, s, cx + 6, cy + 18 + i * 16, 17, ink, { font: 'hand', weight: 600 }))
         }
         crispText(g, `M ${ps.enl.M.toFixed(1)}×  GRADE ${ps.enl.grade}  ${ps.enl.timer} s${ps.enl.flip ? '  FLIP' : ''}`, easel.x, easel.y - 22, 12, light)
@@ -549,7 +551,7 @@ export function createDarkroomStation(app: App, ps: PrintSession, film: FilmProc
       }
       const F = panes[0]
       if (F.x > -1000) {
-        const fs = Math.max(9, Math.min(12, (F.w - 40) / 46))
+        const fs = Math.max(10, Math.min(12, (F.w - 40) / 40))
         LABELS.chart.forEach((s, i) => crispText(g, s, F.x + 22, F.y + 40 + i * (fs + 6), fs, ink, { max: F.w - 40 }))
         crispText(g, LABELS.chartPencil, F.x + 22, F.y + 40 + 5 * (fs + 6) + 4, fs, ink, { max: F.w - 40 })
         crispText(g, LABELS.tank[0], tank.x + tank.w / 2, tank.y + tank.h + 16, 10, light, { align: 'center' })
@@ -730,12 +732,12 @@ export function createDarkroomStation(app: App, ps: PrintSession, film: FilmProc
     const [x, y] = easelToMm(p.x, p.y - off)
     ps.tool = { x, y, on: true }
   }
-  function drawChain(g: CanvasRenderingContext2D, v: number): void {
-    g.strokeStyle = gray(v * 0.7); g.lineWidth = 1.5
+  function drawChain(g: CanvasRenderingContext2D, v: number, sc = 1): void {
+    g.strokeStyle = gray(v * 0.7); g.lineWidth = 1.5 * sc
     g.beginPath(); g.moveTo(chain.x[0], chain.y[0])
     for (let i = 1; i < BEADS; i++) g.lineTo(chain.x[i], chain.y[i])
     g.stroke()
-    for (let i = 0; i < BEADS; i++) { g.beginPath(); g.arc(chain.x[i], chain.y[i], i === BEADS - 1 ? 6 : 3.2, 0, Math.PI * 2); g.fillStyle = gray(v); g.fill() }
+    for (let i = 0; i < BEADS; i++) { g.beginPath(); g.arc(chain.x[i], chain.y[i], (i === BEADS - 1 ? 6 : 3.2) * sc, 0, Math.PI * 2); g.fillStyle = gray(v); g.fill() }
   }
   function roundRect(g: CanvasRenderingContext2D, x: number, y: number, ww: number, hh: number, r: number): void {
     g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + ww, y, x + ww, y + hh, r); g.arcTo(x + ww, y + hh, x, y + hh, r); g.arcTo(x, y + hh, x, y, r); g.arcTo(x, y, x + ww, y, r); g.closePath()

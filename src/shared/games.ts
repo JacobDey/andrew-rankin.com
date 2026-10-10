@@ -50,7 +50,7 @@ export const GAMES: readonly GameInfo[] = [
     scheme: 'auto',
     accent: '#A84B22',
     accentLit: '#EA8A5F',
-    status: 'developing',
+    status: 'ready',
   },
   {
     slug: 'darkroom',
@@ -69,7 +69,7 @@ export const GAMES: readonly GameInfo[] = [
     scheme: 'dark',
     accent: '#1F4F99',
     accentLit: '#86ABF0',
-    status: 'developing',
+    status: 'ready',
   },
   {
     slug: 'plates',

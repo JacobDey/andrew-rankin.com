@@ -123,3 +123,11 @@
   .lb-tab { padding: 0 9px; font-size: 12px; }
   .lb-tab kbd { display: none; }
 }
+
+/* ?embed=poster: bare hero frame, no chrome */
+.lb-poster .lb-top, .lb-poster .lb-cork, .lb-poster .lb-qtoast { display: none !important; }
+.lb-poster .lb-finder > *:not(.lb-finder-view), .lb-poster .lb-place > *:not(.lb-finder) { display: none !important; }
+.lb-poster .lb-finder-view > *:not(canvas) { display: none !important; }
+.lb-poster .lb-finder { inset: 0 !important; }
+.lb-poster #stage > canvas { left: 0 !important; top: 0 !important; width: 100% !important; height: 100% !important; object-fit: cover; }
+@media (max-width: 700px) { .lb-qtoast { bottom: 175px; font-size: 14px; } }

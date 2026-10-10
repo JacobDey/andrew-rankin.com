@@ -56,6 +56,12 @@ void guardStartup(stage, async () => {
   game.app.go(S.save.tutorialDone ? S.station : 'darkroom')
   game.app.resize()
   game.app.start()
+  if (f.embed === 'poster') {
+    document.documentElement.classList.add('li-poster')
+    S.save.lights = 'safe'; S.save.tutorialDone = false
+    game.app.applyPalette(); game.app.go('darkroom'); game.darkroom.refresh(); game.app.resize()
+    setTimeout(() => { const g = (window as unknown as { __game?: Record<string, unknown> }).__game; if (g) g.posterReady = true }, 1800)
+  }
   window.addEventListener('pagehide', () => { void flushSave() })
   document.addEventListener('visibilitychange', () => { if (document.hidden) void flushSave() })
   requestAnimationFrame(() => requestAnimationFrame(() => markReady()))

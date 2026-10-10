@@ -356,6 +356,7 @@ export function createStreetScreen(root: HTMLElement, app: App): StreetScreen {
     enter() {
       active = true
       root.hidden = false
+      if (!new URLSearchParams(location.search).has("embed")) app.noteOnce("street-how", "Pick a spot, then hold the big round button and count aloud. Let go to close the shutter, wind on, and develop in the Tank.")
       app.gl.attachTo(view)
       if (st().camera.body === 'tin' || st().camera.body === 'view') app.store.set({ tripod: true })
       updateShakeParams()

@@ -239,6 +239,7 @@ export function createHud(o: { stage: HTMLElement; world: WorldX; view: View & {
     },
     setStation(id, sub) {
       station = id
+      panel.dataset.station = id
       view.setFocus(id, sub)
       for (const [k, b] of tabs) { b.setAttribute('aria-current', String(k === id)); b.classList.toggle('is-current', k === id) }
       panelHead.textContent = stationById(id).label.toUpperCase()

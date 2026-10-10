@@ -860,7 +860,7 @@ export async function startTexturedle(deps: AppDeps): Promise<void> {
   if (F.debug === 'bake' && curRt) { const b = curRt.bake; void import('../debug/inspector').then((m) => m.showBakeMaps(view.root, b)) }
 
   // first real frame
-  if (poster) await composePoster()
+  if (poster) { await composePoster(); (window as any).__game && ((window as any).__game.posterReady = true) }
   frame(DT, true)
   draw()
   if (!test) raf = requestAnimationFrame(loop)

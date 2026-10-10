@@ -27,7 +27,7 @@ export function mat(color: number, o: { map?: THREE.Texture; rough?: number; met
   return new THREE.MeshStandardMaterial({ color, map: o.map ?? null, roughness: o.rough ?? 0.85, metalness: o.metal ?? 0, emissive: o.emissive ?? 0 })
 }
 
-export function box(w: number, h: number, d: number, m: THREE.Material, x: number, y: number, z: number, parent?: THREE.Object3D, shadows = true): THREE.Mesh {
+export function box(w: number, h: number, d: number, m: THREE.Material | THREE.Material[], x: number, y: number, z: number, parent?: THREE.Object3D, shadows = true): THREE.Mesh {
   const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), m)
   mesh.position.set(x, y, z)
   mesh.castShadow = shadows
@@ -37,7 +37,7 @@ export function box(w: number, h: number, d: number, m: THREE.Material, x: numbe
 }
 
 /** A wall at constant z (axis 'x') or constant x (axis 'z') from u0 to u1 with openings [ua, ub, ya, yb]. */
-function wall(parent: THREE.Object3D, axis: 'x' | 'z', c: number, u0: number, u1: number, y0: number, h: number, m: THREE.Material, holes: [number, number, number, number][] = []): void {
+function wall(parent: THREE.Object3D, axis: 'x' | 'z', c: number, u0: number, u1: number, y0: number, h: number, m: THREE.Material | THREE.Material[], holes: [number, number, number, number][] = []): void {
   const put = (ua: number, ub: number, ya: number, yb: number) => {
     const w = ub - ua
     const u = (ua + ub) / 2
@@ -55,8 +55,8 @@ function wall(parent: THREE.Object3D, axis: 'x' | 'z', c: number, u0: number, u1
   }
   if (cur < u1) put(cur, u1, y0, y0 + h)
 }
-const wallX = (p: THREE.Object3D, z: number, x0: number, x1: number, y0: number, h: number, m: THREE.Material, holes: [number, number, number, number][] = []) => wall(p, 'x', z, x0, x1, y0, h, m, holes)
-const wallZ = (p: THREE.Object3D, x: number, z0: number, z1: number, y0: number, h: number, m: THREE.Material, holes: [number, number, number, number][] = []) => wall(p, 'z', x, z0, z1, y0, h, m, holes)
+const wallX = (p: THREE.Object3D, z: number, x0: number, x1: number, y0: number, h: number, m: THREE.Material | THREE.Material[], holes: [number, number, number, number][] = []) => wall(p, 'x', z, x0, x1, y0, h, m, holes)
+const wallZ = (p: THREE.Object3D, x: number, z0: number, z1: number, y0: number, h: number, m: THREE.Material | THREE.Material[], holes: [number, number, number, number][] = []) => wall(p, 'z', x, z0, z1, y0, h, m, holes)
 
 export function createHouse(e: Engine, ph: Physics): House {
   const root = new THREE.Group()
@@ -68,6 +68,10 @@ export function createHouse(e: Engine, ph: Physics): House {
   const inner = mat(0xe8e0cf, { rough: 0.95 })
   const innerGarage = mat(0xcfc6b3, { rough: 0.95 })
   const trim = mat(0xf4efe4)
+  // clapboard outside only; plaster inside (face order +x -x +y -y +z -z)
+  const clapNorth = [clap, clap, clap, clap, clap, inner]
+  const clapWest = [inner, clap, clap, clap, clap, clap]
+  const clapEast = [clap, inner, clap, clap, clap, clap]
 
   // floors
   box(6, 0.1, 8, mat(0xb0aaa0, { map: TEX.slab() }), -9, -0.05, -4, root).castShadow = false
@@ -75,14 +79,14 @@ export function createHouse(e: Engine, ph: Physics): House {
   kitchenFloor.castShadow = false
 
   // back wall (north, z = 0): garage window, back door; outside clapboard
-  wallX(root, 0, -12, 2, 0, WALL_H, clap, [
+  wallX(root, 0, -12, 2, 0, WALL_H, clapNorth, [
     [-9.8, -8.2, 1.0, 2.0], // garage north window
     [-1.45, -0.55, 0, 2.1], // back door
     [0.4, 1.4, 1.0, 1.9], // kitchen window
   ])
   // west, east walls and the partition
-  wallZ(root, -12, -8, 0, 0, WALL_H, clap)
-  wallZ(root, 2, -8, 0, 0, WALL_H, clap, [[-5.2, -4.3, 0, 2.1]]) // side door to the side lawn? (kitchen east door)
+  wallZ(root, -12, -8, 0, 0, WALL_H, clapWest)
+  wallZ(root, 2, -8, 0, 0, WALL_H, clapEast, [[-5.2, -4.3, 0, 2.1]]) // side door to the side lawn? (kitchen east door)
   wallZ(root, -6, -8, 0, 0, WALL_H, innerGarage, [[-2.4, -1.5, 0, 2.1]]) // garage ↔ kitchen
   // garage side door to the yard (north wall already has the window; side door on the west wall near the yard)
   // interior skins (slightly inside) for warmth

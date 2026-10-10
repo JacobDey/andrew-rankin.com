@@ -248,7 +248,7 @@ export class FinderPreview {
     gu.uFar.value = camera.far
     gu.uCocK.value = (optics.apertureDiameter * optics.imageDistance) / (2000 * pitch)
     gu.uInvS.value = Number.isFinite(spec.focusDistance) ? 1 / spec.focusDistance : 0
-    gu.uExposure.value = ((0.18 / lMid) * (o.brightness ?? 1)) / radianceScale
+    gu.uExposure.value = ((0.18 / lMid) * (o.brightness ?? 1)) * radianceScale
     gu.uFlip.value.set(o.flipX ? -1 : 1, o.flipY ? -1 : 1)
     r.autoClear = false
     if (o.viewport) r.setViewport(o.viewport.x, o.viewport.y, o.viewport.width, o.viewport.height)

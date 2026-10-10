@@ -137,7 +137,12 @@ export async function bootStudio(o: { stage: HTMLElement; shell: Shell; quality:
     if (!store.persistent && !flags().fresh) shell.toast('This house forgets when you leave.')
     // dive into the yard after the roof lifts (onboarding step 1)
     if (!flags().test) window.setTimeout(() => void rooms.go('yard'), e.reducedMotion ? 300 : 1400)
-  } else hud.setHidden(true)
+  } else {
+    hud.setHidden(true)
+    // hub §11.1 poster mode: a representative static hero frame, no chrome
+    await (api as { poster(): Promise<void> }).poster()
+    ;(window as unknown as { __game?: { posterReady?: boolean } }).__game!.posterReady = true
+  }
   requestAnimationFrame(() => markReady())
   void Audio
   void (workshop as RoomModule)

@@ -169,7 +169,7 @@ export function boxBlur(src: Float32Array, res: number, radiusCells: number, pas
 
 /**
  * Snag map (section 5.2): S = hardness * clamp((-lap(H_sigma) - k0) / k1, 0, 1), H_sigma = H smoothed by 0.1 mm,
- * k0 = 3 / mm, k1 = 8 / mm; max-pooled to the burlap field resolution so a single sharp peak survives.
+ * k0 = 2.8 / mm, k1 = 8 / mm; max-pooled to the burlap field resolution so a single sharp peak survives.
  */
 export function snagMap(height: Float32Array, hardness: Float32Array, res: number, sizeMm: number, outRes: number): Float32Array {
   const texel = sizeMm / res
@@ -180,7 +180,7 @@ export function snagMap(height: Float32Array, hardness: Float32Array, res: numbe
     for (let i = 1; i < res - 1; i++) {
       const k = j * res + i
       const lap = (sm[k - 1] + sm[k + 1] + sm[k - res] + sm[k + res] - 4 * sm[k]) * inv
-      const s = (-lap - 3) / 8
+      const s = (-lap - 2.8) / 8
       full[k] = (s < 0 ? 0 : s > 1 ? 1 : s) * hardness[k]
     }
   }

@@ -66,7 +66,7 @@
 .pl-doc--ottilie p { font-style: italic; }
 .pl-doc--amos p { font-style: italic; font-size: 1.25em; transform: skewX(-4deg); }
 .pl-cramped { font-size: .78em; letter-spacing: -.02em; display: inline-block; transform: translateY(-.25em); }
-.pl-doc-close { position: sticky; bottom: 0; margin-top: 8px; }
+.pl-doc-close { position: sticky; bottom: 0; margin-top: 8px; background: var(--pl-b-light) !important; box-shadow: 0 0 0 10px var(--pl-b-light); }
 .pl-doc-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
 .pl-doc--final { text-align: center; }
 .pl-doc--small { width: min(420px, 100%); }

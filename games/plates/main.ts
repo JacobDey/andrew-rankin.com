@@ -21,11 +21,11 @@ const q = new URLSearchParams(location.search)
 
 void guardStartup(stage, async () => {
   let shell: Shell | null = null
-  if (f.embed !== 'poster') {
+  {
     try {
       shell = mountShell({
         slug: 'plates',
-        helpOnFirstVisit: !f.test,
+        helpOnFirstVisit: false,
         help: {
           intro: 'Develop each glass plate under the ruby lamp, read it on the canary light table, and fill in the Board’s Return.',
           controls: [
@@ -73,6 +73,6 @@ void guardStartup(stage, async () => {
     if (q.get('inspect') === '1') await api.inspect(plate, { velvet: q.get('velvet') === '1' ? 1 : 0, eye: (q.get('eye') as 'L' | 'R' | null) ?? 'both' })
   }
   if (q.get('solve') === '1') app.book.model.solveAll()
-  if (f.embed === 'poster') await (window.__game as unknown as { poster(): Promise<void> }).poster()
+  if (f.embed === 'poster') { document.querySelectorAll('.pl-title').forEach((e) => e.remove()); (app as unknown as { begin(): void }).begin(); document.querySelectorAll('.pl-doc-ground').forEach((e) => e.remove()); await (window.__game as unknown as { poster(): Promise<void> }).poster(); app.renderOnce(); await new Promise((r) => requestAnimationFrame(() => r(null))); (window.__game as unknown as { posterReady?: boolean }).posterReady = true }
   requestAnimationFrame(() => { markReady(); try { writeHubNote('plates', app.book.model.status().persons ? `${app.book.model.status().persons}/10 named` : 'in the developer') } catch { /* ignore */ } })
 })

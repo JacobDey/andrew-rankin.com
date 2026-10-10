@@ -184,3 +184,8 @@
 .st-trayprint { display: block; width: 100%; height: auto; margin-top: 8px; border-radius: 2px; box-shadow: 0 0 0 1px rgb(255 120 80 / 0.3); filter: sepia(0.6) hue-rotate(-30deg) saturate(1.6) brightness(0.8); }
 .st-dial[hidden] { display: none; }
 @media (max-width: 640px) { .st-tape { bottom: calc(150px + var(--st-safe-bottom)); } }
+
+/* finder open: clear the yard HUD so nothing collides with the finder controls */
+.st-hud--finder .st-chipwrap, .st-hud--finder .st-pocketwrap, .st-hud--finder .st-housebtn, .st-hud--finder .st-bulb, .st-hud--finder .st-cambtn { display: none !important; }
+.st-hud--finder .st-tape { bottom: calc(96px + var(--st-safe-bottom)); left: calc(70px + var(--st-safe-left)); }
+@media (max-width: 640px) { .st-hud--finder .st-tape { bottom: calc(190px + var(--st-safe-bottom)); left: 12px; } }

@@ -621,6 +621,23 @@ export async function startLensBench(deps: LensBenchDeps): Promise<App> {
   renderCork()
   renderStatus()
   goto(store.get().progress.onboarded ? (store.get().place === 'street' ? 'street' : 'bench') : 'bench')
+  if (F.embed === 'poster') {
+    // Hero composition for public/posters/lensbench.jpg: golden-hour fountain, no chrome.
+    document.documentElement.classList.add('lb-poster')
+    const compose = async () => {
+      markOnboarded()
+      store.set({ timeOfDay: 17.2, shutterS: 0, tripod: false, frozen: true })
+      goto('street')
+      screens.street.standpoint('fountain')
+      aimAt('fountain')
+      setAperture(8)
+      focusTo(7)
+      for (let i = 0; i < 6; i++) { loop.advance(1); screens.street.update(1 / 60); await sleep(80) }
+      ;(window as unknown as { __game: { posterReady?: boolean } }).__game.posterReady = true
+    }
+    ;(window as unknown as { __game: { poster?: () => Promise<void> } }).__game.poster = compose
+    void compose()
+  }
   if (test) { loop.advance(1) } else loop.start()
   // first real frame: render the active place once, then mark ready
   screens[place].update(1 / 60)
