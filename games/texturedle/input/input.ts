@@ -80,7 +80,7 @@ export function createInput(H: InputHost): Input {
     if (!H.enabled() || pid !== -1) return
     H.onActivity()
     const t = e.target as HTMLElement
-    if (t === H.lampEl || t === H.focusEl) return
+    if (t === H.lampEl || t === H.focusEl || t.closest('[data-tx-ui]')) return
     const f = frameHit(e)
     pid = e.pointerId
     px0 = e.clientX; py0 = e.clientY

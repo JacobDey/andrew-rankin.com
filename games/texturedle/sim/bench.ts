@@ -34,6 +34,8 @@ export interface BenchExtras {
   readonly physRes: number
   readonly ceiling: boolean
   popAt(x: number, y: number): void
+  /** a new specimen: clear the running probe stats and the cloths' residue */
+  resetStats(): void
   frameNo: number
 }
 
@@ -725,7 +727,21 @@ export function createBench(seed: number): Bench & BenchExtras {
       if (held === 'lens') flushPolish()
       held = null
     },
-    clothFlip(k) { cloths[k].flipped = !cloths[k].flipped },
+    clothFlip(k) {
+      // turn the swatch over in place: mirror it across its centre line, contact side up
+      const c = cloths[k]
+      if (c.where === 'tray') return
+      const cen: [number, number] = [0, 0]
+      c.centroid(cen)
+      for (let i = 0; i < c.N; i++) {
+        c.x[i * 3] = 2 * cen[0] - c.x[i * 3]
+        c.x[i * 3 + 2] += 0.02
+        c.v[i * 3] = c.v[i * 3 + 1] = c.v[i * 3 + 2] = 0
+      }
+      c.flipped = !c.flipped
+      c.asleep = false
+      c.version++
+    },
     resetProbes() {
       for (const k of ['lens', 'burlap'] as ClothKind[]) cloths[k].stow()
       held = null
@@ -792,6 +808,19 @@ export function createBench(seed: number): Bench & BenchExtras {
     get loose() { return rt?.bake.loose ?? null },
     get physRes() { return rt?.bake.physRes ?? 0 },
     get ceiling() { return ceiling },
+    resetStats() {
+      stats.tiltMax = 0; stats.lampSwept = 0; stats.bounces = 0; stats.maxImpact = 0; stats.rollJitterRms = 0; stats.levelDrift = null
+      stats.channelFrac = 0; stats.wiped.lens = 0; stats.wiped.burlap = 0; stats.slipMuK.lens = 0; stats.slipMuK.burlap = 0
+      stats.snags = 0; stats.layersRevealed.length = 0; stats.pileTurned = 0; stats.avalanche = 0; stats.polishDrop = 0
+      for (const k of ['lens', 'burlap'] as ClothKind[]) {
+        const c = cloths[k]
+        c.residueA.fill(0); c.residueW.fill(0); c.residueRgb.fill(0); c.residue.fill(0); c.fibreCount = 0; c.fibres.fill(0)
+        c.wipedMm = 0; c.muEff = 0; c.muN = 0
+        stats.residue[k].alpha = 0; stats.residue[k].kind = ''
+        residueKind[k] = ''
+      }
+      m.jitAcc = 0; m.jitT = 0; m.levelT = 0; m.chanT = 0; m.chanIn = 0
+    },
     popAt(x, y) {
       if (!rt) return
       // crack the enamel shell over the blister: knock the dome down and puff rust dust

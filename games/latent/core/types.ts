@@ -40,7 +40,7 @@ export interface FrameImage {
   /** 4 box-filtered levels of L (level 0 = L). */
   mips: { w: number; h: number; L: Float32Array }[]
   insets: { bbox: BBox; w: number; h: number; L: Float32Array }[]
-  deltas: Partial<Record<FactId, { bbox: BBox; w: number; h: number; d: Float32Array }>>
+  deltas: Partial<Record<FactId, { bbox: BBox; w: number; h: number; d: Float32Array; off: Float32Array }>>
 }
 export interface Crescent { frame: number; x: number; y: number; rot: number }
 export interface Spot { frame: number; x: number; y: number; r: number }

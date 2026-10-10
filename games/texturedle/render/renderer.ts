@@ -50,7 +50,7 @@ export function createRenderer(canvas: HTMLCanvasElement, opts: { quality: 'high
   let looseRgb: [number, number, number] = [0.4, 0.15, 0.05]
   let dirtyH = false, dirtyA = false, dirtyO = false
   let lastUpload = 0
-  let exposure = 1.3
+  let exposure = 1.45
 
   const stageMat3 = new THREE.Matrix3()
   const lampW = new THREE.Vector3()
@@ -64,7 +64,7 @@ export function createRenderer(canvas: HTMLCanvasElement, opts: { quality: 'high
     uniforms: {
       ...common,
       uAlbedo: { value: aTex as THREE.Texture }, uOrm: { value: oTex as THREE.Texture }, uLoose: { value: lTex as THREE.Texture },
-      uLooseOn: { value: 0 }, uLooseRgb: { value: new THREE.Vector3(0.4, 0.15, 0.05) },
+      uLooseOn: { value: 0 }, uLooseRes: { value: 4 }, uLooseRgb: { value: new THREE.Vector3(0.4, 0.15, 0.05) },
       uFocusZ: { value: 0 }, uM: { value: 5 }, uN: { value: 8 }, uMmPerTexel: { value: mpt }, uSteps: { value: quality === 'high' ? 16 : 8 },
       uMarble: { value: new THREE.Vector4(0, 0, 0, 0) }, uFrame: { value: new THREE.Vector2(7.2, 4.8) }, uSeed: { value: 0 },
       uAniso: { value: 0 }, uPeak: { value: 0 },
@@ -270,6 +270,7 @@ export function createRenderer(canvas: HTMLCanvasElement, opts: { quality: 'high
       v.mesh.visible = cs.where !== 'tray'
       if (!v.mesh.visible) continue
       v.mat.uniforms.uSwatch.value = cs.swatchMm
+      v.mat.uniforms.uFlipped.value = cs.flipped ? 1 : 0
       const pa = v.geo.getAttribute('position') as THREE.BufferAttribute
       ;(pa.array as Float32Array).set(cs.pos)
       pa.needsUpdate = true
@@ -372,6 +373,7 @@ export function createRenderer(canvas: HTMLCanvasElement, opts: { quality: 'high
       ;(plateMat.uniforms.uLooseRgb.value as THREE.Vector3).set(rgb[0], rgb[1], rgb[2])
       if (!data) { plateMat.uniforms.uLooseOn.value = 0; return }
       plateMat.uniforms.uLooseOn.value = 1
+      plateMat.uniforms.uLooseRes.value = r
       if (lTex.image.width !== r || lTex.image.data !== data) {
         lTex.dispose()
         lTex = new THREE.DataTexture(data, r, r, THREE.RedFormat, THREE.FloatType)

@@ -159,9 +159,9 @@ export function createReveal(): Reveal {
       dur = reducedMotion ? 0.15 : 3.5
       // specimen-equivalent pose: looking straight down at the spot from ~5 cm
       from.copy(spot).add(new THREE.Vector3(0, 0.05, 0.0001))
-      to.set(-0.55, 1.42, 1.55)
+      to.set(-0.85, 1.38, 2.05)
       look.copy(spot)
-      lookTo.set(0.12, 1.02, 0)
+      lookTo.set(0.18, 0.92, 0)
       t0 = -1
       playing = true
       return new Promise<void>((r) => { resolveFn = r })

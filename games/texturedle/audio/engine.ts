@@ -24,7 +24,7 @@ const CAPTION: Record<BodySpec['preset'], string> = {
   ceramic: '[bright clink]', tube: '[ringing tube]', 'rubber-ball': '[rubbery boing]', fruit: '[soft puk]', soft: '[muffled thud]',
 }
 
-export function createAudio(): AudioEngine & { setMuted(m: boolean): void; readonly live: boolean } {
+export function createAudio(): AudioEngine & { setMuted(m: boolean): void; setHaptics(on: boolean): void; readonly live: boolean } {
   let ctx: AudioContext | null = null
   let bus: GainNode | null = null
   let send: GainNode | null = null
@@ -33,6 +33,8 @@ export function createAudio(): AudioEngine & { setMuted(m: boolean): void; reado
   let roomNodes: { g: GainNode; src: AudioBufferSourceNode } | null = null
   let nextDrip = 0
   let muted = false
+  let haptics = true
+  const buzz = (p: number) => { if (haptics) haptic(p) }
   const caps: Array<(t: string) => void> = []
   let lastCap = new Map<string, number>()
   let noiseBuf: AudioBuffer | null = null
@@ -49,6 +51,27 @@ export function createAudio(): AudioEngine & { setMuted(m: boolean): void; reado
   let rattle = false
   let preset: BodySpec['preset'] = 'hollow-sheet'
   let modes: Array<[number, number, number]> = PRESET_MODES['hollow-sheet']
+  // the contact synth (AudioWorklet); null until it loads, or when unsupported (fallback = noise loops)
+  let contact: AudioWorkletNode | null = null
+  let contactLoading = false
+  let clickN = 0
+  function loadContact(): void {
+    if (!ctx || contact || contactLoading || !ctx.audioWorklet) return
+    contactLoading = true
+    ctx.audioWorklet.addModule(new URL('./contact-worklet.js', import.meta.url)).then(() => {
+      if (!ctx) return
+      contact = new AudioWorkletNode(ctx, 'tx-contact', { numberOfInputs: 0, numberOfOutputs: 1, outputChannelCount: [2] })
+      out(contact)
+      if (rt) postField(rt)
+    }).catch((e: unknown) => { console.debug('[texturedle] contact worklet unavailable, using the noise fallback', e) })
+  }
+  function postField(r: SurfaceRuntime): void {
+    if (!contact) return
+    const b = r.bake
+    if (!b.audioRes || !b.audioHeight.length) return
+    const copy = new Float32Array(b.audioHeight)
+    contact.port.postMessage({ type: 'field', res: b.audioRes, sizeMm: b.sizeMm, data: copy }, [copy.buffer])
+  }
 
   function caption(t: string, key = t): void {
     const now = performance.now()
@@ -84,6 +107,7 @@ export function createAudio(): AudioEngine & { setMuted(m: boolean): void; reado
     conv.connect(bus)
     noiseBuf = Audio.noise('white') ?? makeNoise(ctx)
     if (room) startRoom()
+    loadContact()
     return true
   }
 
@@ -223,7 +247,7 @@ export function createAudio(): AudioEngine & { setMuted(m: boolean): void; reado
     }
     const gain = Math.min(0.9, 0.08 + Math.sqrt(Math.max(0, energyUJ)) * 0.35) * (modes.length ? 1 : 0.4)
     oneShot(buf, pan(x), gain)
-    haptic(Math.round(4 + Math.min(26, energyUJ * 20)))
+    buzz(Math.round(4 + Math.min(26, energyUJ * 20)))
     if (modes.length) caption(rattle && energyUJ > 0.3 ? '[hollow metal ring, latch rattles]' : CAPTION[preset], 'impact')
     else caption(CAPTION.soft, 'impact')
     void speed
@@ -264,7 +288,7 @@ export function createAudio(): AudioEngine & { setMuted(m: boolean): void; reado
     pn.pan.value = p
     s.connect(f).connect(g).connect(pn)
     out(pn)
-    s.start(t, Math.random() * 1.5)
+    s.start(t, ((clickN++ * 0.37) % 1.5))
     s.stop(t + dur + 0.01)
   }
 
@@ -289,12 +313,20 @@ export function createAudio(): AudioEngine & { setMuted(m: boolean): void; reado
       modes = r.recipe.body.modes ?? PRESET_MODES[preset]
       rattle = !!r.recipe.body.rattle
       micro = microRoughness(r)
+      postField(r)
     },
     update(c: AudioContacts) {
       if (!ensure() || !ctx || muted) return
       const t = ctx.currentTime
       // room drip every 11 ± 3 s
       if (roomNodes && t > nextDrip) { drip(); nextDrip = t + 8 + ((t * 7.31) % 6) }
+      // the contact synth hears the texture itself
+      if (contact) {
+        const list: Array<{ id: number; x: number; y: number; vx: number; vy: number; load: number; rough: number; gain: number }> = []
+        if (c.marble) list.push({ id: 0, ...c.marble, rough: rt ? rt.materialAt(c.marble.x, c.marble.y).roughness : 0.5, gain: 1 })
+        for (const cc of c.cloths) list.push({ id: cc.kind === 'lens' ? 1 : 2, x: cc.x, y: cc.y, vx: cc.vx, vy: cc.vy, load: cc.load, rough: rt ? rt.materialAt(cc.x, cc.y).roughness : 0.5, gain: cc.kind === 'lens' ? 0.35 : 0.8 })
+        contact.port.postMessage({ type: 'contacts', list })
+      }
       // marble rolling: the texture under the bead, at real (sim) speed
       if (c.marble) {
         if (!roll) roll = mkLoop('bandpass', 800, 0.7)
@@ -304,7 +336,7 @@ export function createAudio(): AudioEngine & { setMuted(m: boolean): void; reado
         const rough = mat ? mat.roughness : 0.5
         const lp = Math.max(200, Math.min(8000, v / (2 * Math.PI * 0.3)))
         roll.f.frequency.setTargetAtTime(lp, t, 0.03)
-        const gain = Math.min(0.5, Math.sqrt(v / 400) * c.marble.load * (0.05 + rough * rough * 0.6) * (0.4 + micro))
+        const gain = Math.min(0.5, Math.sqrt(v / 400) * c.marble.load * (0.05 + rough * rough * 0.6) * (0.4 + micro)) * (contact ? 0.35 : 1)
         roll.g.gain.setTargetAtTime(gain, t, 0.03)
         roll.p.pan.setTargetAtTime(pan(c.marble.x), t, 0.05)
         rollTick.g.gain.setTargetAtTime(gain * rough * rough * 0.5, t, 0.03)
@@ -345,7 +377,7 @@ export function createAudio(): AudioEngine & { setMuted(m: boolean): void; reado
         case 'snag':
           click(4000, 0.8, 0.004, 0.4)
           blip(2200, 2100, 0.08, 0.06)
-          haptic(8)
+          buzz(8)
           caption('[snag tick]', 'snag')
           break
         case 'snagRelease':
@@ -362,7 +394,7 @@ export function createAudio(): AudioEngine & { setMuted(m: boolean): void; reado
           caption('[plink… tonk]', 'edge')
           break
         case 'shake':
-          haptic(20)
+          buzz(20)
           break
         case 'layerRevealed':
           caption('[scrape changes pitch]', 'layer')
@@ -422,6 +454,7 @@ export function createAudio(): AudioEngine & { setMuted(m: boolean): void; reado
       caps.push(cb)
       return () => { const i = caps.indexOf(cb); if (i >= 0) caps.splice(i, 1) }
     },
+    setHaptics(on: boolean) { haptics = on },
     setMuted(m: boolean) {
       muted = m
       if (m && ctx) {

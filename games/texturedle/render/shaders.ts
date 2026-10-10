@@ -86,6 +86,7 @@ uniform sampler2D uAlbedo;
 uniform sampler2D uOrm;
 uniform sampler2D uLoose;
 uniform float uLooseOn;
+uniform float uLooseRes;
 uniform vec3 uLooseRgb;
 uniform float uFocusZ;
 uniform float uM;
@@ -112,7 +113,17 @@ void main() {
   vec3 nP = nAt(vUv, tex * max(1.0, exp2(lod)));
   // loose material (rust flakes, dust) sits in the cavities
   if (uLooseOn > 0.5) {
-    float L = texture(uLoose, vUv).r;
+    // R32F is not filterable everywhere: bilinear by hand so the grit has no blocky edges
+    vec2 lf = vUv * uLooseRes - 0.5;
+    vec2 li = floor(lf);
+    vec2 lt = lf - li;
+    int ln = int(uLooseRes) - 1;
+    ivec2 la = ivec2(li);
+    float l00 = texelFetch(uLoose, clamp(la, ivec2(0), ivec2(ln)), 0).r;
+    float l10 = texelFetch(uLoose, clamp(la + ivec2(1, 0), ivec2(0), ivec2(ln)), 0).r;
+    float l01 = texelFetch(uLoose, clamp(la + ivec2(0, 1), ivec2(0), ivec2(ln)), 0).r;
+    float l11 = texelFetch(uLoose, clamp(la + ivec2(1, 1), ivec2(0), ivec2(ln)), 0).r;
+    float L = mix(mix(l00, l10, lt.x), mix(l01, l11, lt.x), lt.y);
     float k = smoothstep(0.0, 20.0, L);
     alb = mix(alb, uLooseRgb * (0.8 + 0.4 * hash12(vUv * 913.0)), k * 0.9);
     orm.g = mix(orm.g, 0.95, k);
@@ -179,11 +190,11 @@ void main() {
     }
   }
   vec3 lampC = vec3(1.0, 0.945, 0.894);
-  float lampI = uRing > 0.5 ? 2.3 : 5.2;
+  float lampI = uRing > 0.5 ? 2.6 : 6.4;
   vec3 col = (diff + spec) * lampC * lampI * NoL * vis;
   col += diff * lampC * lampI * caust * 0.6;
   // cool hemisphere fill
-  col += alb * vec3(0.78, 0.83, 0.9) * 0.12 * (0.6 + 0.4 * N.z) * ao;
+  col += alb * vec3(0.78, 0.83, 0.9) * 0.2 * (0.6 + 0.4 * N.z) * ao;
   // softbox reflections (glossy paint and metal show the catchlight)
   vec3 R = reflect(-V, N);
   vec3 envc = envW(R, rough);
@@ -354,7 +365,8 @@ void main() {
   }
   // residue picked up from the surface
   vec3 res = vRes.rgb;
-  float ra = vRes.a * (uKind > 0.5 ? 0.6 : 0.95);
+  // flipped over, the contact side faces the lens: the residue reads at full strength
+  float ra = vRes.a * (uFlipped > 0.5 ? 1.0 : uKind > 0.5 ? 0.6 : 0.8);
   base = mix(base, res * res, ra);
   vec3 L = uRing > 0.5 ? vec3(0.0, 0.0, 1.0) : normalize(uLampW);
   float wrap = uKind > 0.5 ? 0.25 : 0.4;

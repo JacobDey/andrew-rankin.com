@@ -1,0 +1,15 @@
+[
+  {"eval": "__game.whenReady().then(()=>__game.setSetting('screenshotMode', true))"},
+  {"shot": "shots/latent/smoke-m0-pull.png"},
+  {"eval": "__game.lights(true)"},
+  {"wait": 600},
+  {"shot": "shots/latent/smoke-m1-darkroom.png"},
+  {"eval": "__game.develop(60,{rock:true});__game.stop();__game.fix();__game.hang()"},
+  {"eval": "__game.goto('line')"},
+  {"wait": 800},
+  {"shot": "shots/latent/smoke-m2-line.png"},
+  {"eval": "__game.goto('terminal');__game.search('HOLD').count"},
+  {"wait": 400},
+  {"shot": "shots/latent/smoke-m3-terminal.png"},
+  {"eval": "document.documentElement.scrollWidth <= innerWidth"}
+]

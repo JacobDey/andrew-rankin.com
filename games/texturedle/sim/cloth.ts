@@ -20,6 +20,8 @@ export interface ClothSpec {
   snags: boolean
 }
 
+const SNAG_MIN = 0.2
+
 export const LENS: ClothSpec = { kind: 'lens', thicknessMm: 0.05, muCloth: 0.25, pressMm: 0.03, archardK: 0.5, kPick: 0.5, shear: 1e-4, bend: 5e-4, snags: false }
 export const BURLAP: ClothSpec = { kind: 'burlap', thicknessMm: 0.4, muCloth: 0.7, pressMm: 0.12, archardK: 20, kPick: 0.15, shear: 1e-6, bend: 2e-6, snags: true }
 
@@ -83,6 +85,7 @@ export class Cloth {
   private pen: Float64Array
   private staticRun: Uint8Array
   pinned: Uint8Array
+  pinCount = 0
   private pin: Float64Array
   private pinS: Float32Array
   private cool: Float32Array
@@ -91,6 +94,7 @@ export class Cloth {
   wearAny = false
   polish: Float32Array
   residueA: Float32Array // 0..1
+  residueW: Float32Array // accumulated pigment weight
   residueRgb: Float32Array // linear rgb
   residue: Uint8ClampedArray // n² RGBA (sRGB-ish) for render
   rubbing: Uint8ClampedArray
@@ -149,6 +153,7 @@ export class Cloth {
     this.wear = new Float32Array(N)
     this.polish = new Float32Array(N)
     this.residueA = new Float32Array(N)
+    this.residueW = new Float32Array(N)
     this.residueRgb = new Float32Array(N * 3)
     this.residue = new Uint8ClampedArray(N * 4)
     this.rubbing = new Uint8ClampedArray(N * 4)
@@ -170,7 +175,7 @@ export class Cloth {
       this.x[k * 3 + 2] = (env.field.sample(xu * L, yu * L) + this.spec.thicknessMm) / L + 0.002
       this.v[k * 3] = this.v[k * 3 + 1] = this.v[k * 3 + 2] = 0
     }
-    this.pinned.fill(0)
+    this.pinned.fill(0); this.pinCount = 0
     this.where = 'plate'
     this.asleep = false
     this.still = 0
@@ -241,7 +246,7 @@ export class Cloth {
     this.release()
     this.where = 'tray'
     this.asleep = true
-    this.pinned.fill(0)
+    this.pinned.fill(0); this.pinCount = 0
   }
 
   step(dt: number, sub: number, env: ClothEnv, out: ClothFrameOut): void {
@@ -353,6 +358,7 @@ export class Cloth {
           const d = Math.hypot(X[k3] - this.pin[k3], X[k3 + 1] - this.pin[k3 + 1], X[k3 + 2] - this.pin[k3 + 2])
           if (d > 0.02 + 0.08 * this.pinS[k] || W[k] === 0) {
             this.pinned[k] = 0
+            this.pinCount = Math.max(0, this.pinCount - 1)
             this.cool[k] = 0.3
             out.snags.push({ t: 'snagRelease', x: this.pin[k3] * L, y: this.pin[k3 + 1] * L, s: this.pinS[k] })
             this.addFibre(this.pin[k3] * L, this.pin[k3 + 1] * L, env)
@@ -442,7 +448,10 @@ export class Cloth {
               const dr = sp.kPick * amt * frac * 6 * (1 - ra)
               if (dr > 0) {
                 const rgb = lu > (src ? src.rate : 0) && env.looseRgb ? env.looseRgb : src ? src.rgb : null
-                const wNew = dr / (ra + dr)
+                // colour mixes by pigment strength (rate²): rust powder stains far more than chalky paint
+                const pw = dr * amt * amt
+                const wNew = pw / (this.residueW[k] + pw)
+                this.residueW[k] += pw
                 if (rgb) {
                   this.residueRgb[k3] += (rgb[0] - this.residueRgb[k3]) * wNew
                   this.residueRgb[k3 + 1] += (rgb[1] - this.residueRgb[k3 + 1]) * wNew
@@ -454,10 +463,12 @@ export class Cloth {
             // snags: sliding over sharp hard peaks
             if (sp.snags && W[k] !== 0 && this.cool[k] <= 0) {
               const S = env.snag(xm, ym)
-              let pins = 0
-              for (let q = 0; q < N; q++) pins += this.pinned[q]
-              if (S > 0.3 && pins < 3 && env.rng() < (S - 0.3) * slidMm * 6) {
+              const pins = this.pinCount
+              // GDD threshold is S > 0.3, but S = hardness_top · curvature caps rust (hardness 0.25) below it;
+              // tuned (I5) to 0.18 so the burlap snags 1–3 times per scrub on rust and not on enamel
+              if (S > SNAG_MIN && pins < 3 && env.rng() < (S - SNAG_MIN) * slidMm * 1.2) {
                 this.pinned[k] = 1
+                this.pinCount++
                 this.pinS[k] = S
                 this.pin[k3] = X[k3]; this.pin[k3 + 1] = X[k3 + 1]; this.pin[k3 + 2] = X[k3 + 2]
                 out.snags.push({ t: 'snag', x: xm, y: ym, s: S })
@@ -519,21 +530,23 @@ export class Cloth {
 
   /** Mean residue alpha and colour over the particles that carry any. */
   residueSummary(out: { rgb: RGB; alpha: number }): { rgb: RGB; alpha: number } {
-    let a = 0, r = 0, g = 0, b = 0, n = 0, wsum = 0
+    // alpha: how stained the cloth is; colour: the most strongly stained, most saturated
+    // patch (what a person would name), not a wash of everything the cloth touched
+    let a = 0, n = 0, best = -1, bs = 0
     for (let k = 0; k < this.N; k++) {
       const ra = this.residueA[k]
       if (ra < 0.02) continue
-      // weight by alpha²: the colour of the stained part, not a wash of everything touched
       const cr = this.residueRgb[k * 3], cg = this.residueRgb[k * 3 + 1], cb = this.residueRgb[k * 3 + 2]
       const chroma = Math.max(cr, cg, cb) - Math.min(cr, cg, cb)
-      const w = ra * ra * (0.03 + chroma)
-      a += ra; r += this.residueRgb[k * 3] * w; g += this.residueRgb[k * 3 + 1] * w; b += this.residueRgb[k * 3 + 2] * w; wsum += w
+      const score = ra * ra * (0.04 + chroma)
+      if (score > bs) { bs = score; best = k }
+      a += ra
       n++
     }
-    if (n === 0 || a === 0) { out.alpha = 0; return out }
-    out.rgb[0] = r / wsum; out.rgb[1] = g / wsum; out.rgb[2] = b / wsum
-    // coverage-weighted: a whole-cloth mean, emphasising the stained part
+    if (n === 0 || best < 0) { out.alpha = 0; return out }
+    out.rgb[0] = this.residueRgb[best * 3]; out.rgb[1] = this.residueRgb[best * 3 + 1]; out.rgb[2] = this.residueRgb[best * 3 + 2]
     out.alpha = Math.min(1, (a / n) * Math.min(1, n / (this.N * 0.15)))
     return out
   }
+
 }

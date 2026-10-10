@@ -8,9 +8,10 @@ import { toast, openDialog, createSwitch, createSegmented, confirmDialog, showLo
 import { RATIOS, MISS_TITLE, type Bench, type BenchEvent, type ClothKind, type Renderer, type AudioEngine, type ViewState, type MarbleState, type Vec2 } from '../contracts'
 import type { BenchExtras } from '../sim/bench'
 import type { RendererExtras } from '../render/renderer'
-import { bakeSurface, createRuntime, getRecipe, WALK, POOL, SURFACE_SOURCE, type SurfaceRuntime, type SurfaceRecipe, type SurfaceBake } from '../glue/surface'
+import { bakeSurface, createRuntime, getRecipe, thumbnail, WALK, POOL, SURFACE_SOURCE, type SurfaceRuntime, type SurfaceRecipe, type SurfaceBake } from '../glue/surface'
 import { createView, type View } from '../ui/view'
 import { createInput, type Input } from '../input/input'
+import { createGyro } from '../input/gyro'
 import { createNotes, type Notes, type Chip } from './notes'
 import { ATLAS, atlasEntry, lintAtlas, FAMILY_NAME, HABITAT_NAME, HARDNESS_NAME, GRAIN_NAME, WEAR_NAME, type AtlasEntry } from './atlas'
 import { resolveGuess, suggest, complete, feedback, consistent, tileGlyph, type Tile } from './guess'
@@ -23,7 +24,7 @@ export interface AppDeps {
   shell: Shell
   createBench: (seed: number) => Bench & BenchExtras
   createRenderer: (canvas: HTMLCanvasElement, opts: { quality: 'high' | 'low'; force2d?: boolean; test?: boolean }) => Renderer & RendererExtras
-  createAudio: () => AudioEngine & { setMuted(m: boolean): void }
+  createAudio: () => AudioEngine & { setMuted(m: boolean): void; setHaptics(on: boolean): void }
 }
 
 export const HELP: HelpContent = {
@@ -71,6 +72,7 @@ export async function startTexturedle(deps: AppDeps): Promise<void> {
   const audio = deps.createAudio()
   if (test || poster) audio.setMuted(true)
   audio.setRoomTone(save.settings.roomTone)
+  audio.setHaptics(save.settings.haptics)
   void audio.unlock()
 
   // ---------------- day + specimen ----------------
@@ -91,10 +93,14 @@ export async function startTexturedle(deps: AppDeps): Promise<void> {
   function freshRecord(): DayRecord {
     return { recipeId, status: 'playing', mode: save.settings.hard ? 'hard' : 'normal', guesses: [], ratioIndex: 0, evidence: [], probes: { tilt: false, marble: false, lens: false, burlap: false }, secret: false, notes: [] }
   }
+  // Free Touch (after finishing, or a slide from the Light Table): a scratch copy of the
+  // day's record, so racking through the ratios never rewrites the score
+  let freeTouch = false
   function loadRecord(): void {
     const ex = poster ? undefined : save.days[day]
     rec = ex && ex.recipeId === recipeId ? ex : freshRecord()
-    if (!poster) save.days[day] = rec
+    if (freeTouch) rec = JSON.parse(JSON.stringify(rec)) as DayRecord
+    else if (!poster) save.days[day] = rec
     notes = createNotes()
     notes.restore(rec.notes ?? [])
     Object.assign(notes.probes, rec.probes)
@@ -104,7 +110,7 @@ export async function startTexturedle(deps: AppDeps): Promise<void> {
   const tilesFor = (g: AtlasEntry) => feedback(g, answer, tileNames(g))
 
   const sizeFor = (i: number) => 1.06 * Math.max(RATIOS[i].fovMm[0], RATIOS[i].fovMm[1])
-  const bakeRes = () => (SURFACE_SOURCE === 'local' ? 512 : quality === 'high' ? 1024 : 512)
+  const bakeRes = () => (quality === 'high' ? 1024 : 512)
   function bakeFor(i: number): Promise<SurfaceBake> {
     let p = bakes.get(i)
     if (!p) {
@@ -126,6 +132,7 @@ export async function startTexturedle(deps: AppDeps): Promise<void> {
     audio.setSurface(next)
     rec.ratioIndex = i
     view.setTurret(i)
+    updateDust()
     view.setReadout(RATIOS[i], 0, lamp.az, carry)
     if (!test && i < 5) setTimeout(() => { void bakeFor(i + 1) }, 1500)
   }
@@ -232,14 +239,16 @@ export async function startTexturedle(deps: AppDeps): Promise<void> {
           if (hit) {
             rec.secret = true
             if (!save.stats.secrets.includes(recipe.id)) save.stats.secrets.push(recipe.id)
-            if (hit.id === 'pop-blister') bench.popAt(hit.x, hit.y)
+            if (hit.id === 'blister' || hit.id === 'pop-blister') bench.popAt(hit.x, hit.y)
             if (!test) toast('✨ Something gave way.')
             persist()
           }
         }
         audio.event(e)
       }
-      const ctx = { lampDeg: lamp.az, lampMode: lamp.mode, tiltDeg: Math.hypot(bench.state.tilt.x, bench.state.tilt.y), ratio: RATIOS[rec.ratioIndex], frameW: bench.frame().w, frameH: bench.frame().h }
+      const contacts = bench.contacts()
+      const bc = contacts.cloths.find((c) => c.kind === 'burlap')
+      const ctx = { lampDeg: lamp.az, lampMode: lamp.mode, tiltDeg: Math.hypot(bench.state.tilt.x, bench.state.tilt.y), ratio: RATIOS[rec.ratioIndex], frameW: bench.frame().w, frameH: bench.frame().h, burlapAt: bc ? { x: bc.x, y: bc.y } : null }
       const fresh = notes.ingest(evBuf, bench.stats, rt, ctx)
       if (fresh.length) {
         for (const c of fresh) { freshChips.add(c.id); if (!rec.evidence.includes(c.id)) rec.evidence.push(c.id) }
@@ -249,7 +258,7 @@ export async function startTexturedle(deps: AppDeps): Promise<void> {
         persist()
       }
       Object.assign(rec.probes, notes.probes)
-      audio.update(bench.contacts())
+      audio.update(contacts)
     }
     // autofocus: the active probe, else the hover point, else the centre
     const ms = bench.state.marble
@@ -259,11 +268,16 @@ export async function startTexturedle(deps: AppDeps): Promise<void> {
     fx = Math.max(-fw.w / 2, Math.min(fw.w / 2, fx)); fy = Math.max(-fw.h / 2, Math.min(fw.h / 2, fy))
     if (rt) {
       const target = renderer.focusZAt(fx, fy, bench.state.tilt) + (performance.now() < focus.manualUntil || test ? focus.manual : 0)
+      // AF spring (ω = 18 rad/s, ζ = 0.45), substepped so slow frames can't blow it up
       const w = 18, z = 0.45
-      const a = w * w * (target - focus.z) - 2 * z * w * focus.v
-      focus.v += a * dt
-      focus.z += focus.v * dt
-      if (test) { focus.z = target; focus.v = 0 }
+      const n = Math.max(1, Math.ceil((dt * w) / 0.15))
+      const h = dt / n
+      for (let i = 0; i < n; i++) {
+        const a = w * w * (target - focus.z) - 2 * z * w * focus.v
+        focus.v += a * h
+        focus.z += focus.v * h
+      }
+      if (test || !Number.isFinite(focus.z) || !Number.isFinite(focus.v)) { focus.z = target; focus.v = 0 }
     }
     focus.offset *= Math.exp(-dt * 3.2)
     if (Math.abs(focus.offset) < 1e-4) focus.offset = 0
@@ -346,8 +360,10 @@ export async function startTexturedle(deps: AppDeps): Promise<void> {
   // ---------------- persistence ----------------
   function persist(): void {
     if (poster) return
-    rec.notes = notes.chips.map((c) => ({ ...c }))
-    save.days[day] = rec
+    if (!freeTouch) {
+      rec.notes = notes.chips.map((c) => ({ ...c }))
+      save.days[day] = rec
+    }
     writeSave(save)
   }
 
@@ -490,6 +506,7 @@ export async function startTexturedle(deps: AppDeps): Promise<void> {
   // ---------------- reveal + field card ----------------
   async function revealSequence(): Promise<void> {
     phase = 'reveal'
+    view.root.dataset.reveal = '1'
     renderer.render(vs())
     const rm = reduced()
     const p = renderer.playReveal(recipe, { reducedMotion: rm })
@@ -544,18 +561,64 @@ export async function startTexturedle(deps: AppDeps): Promise<void> {
     view.guessBtn.disabled = true
     view.msg.textContent = solved ? 'Specimen confirmed. Come back tomorrow.' : "Today's surface got away. Come back tomorrow."
     updateShellActions()
-    if (resumed) void 0
+    void resumed
   }
 
   function keepTouching(): void {
     view.cardWrap.hidden = true
+    view.root.dataset.reveal = '0'
     renderer.endReveal()
+    if (!freeTouch) { persist(); freeTouch = true; rec = JSON.parse(JSON.stringify(rec)) as DayRecord }
     phase = 'free'
+    view.root.dataset.free = '1'
+    view.msg.textContent = 'Free touch: tap a ratio above to rack in or out.'
     view.canvas.focus()
   }
 
+  // turret pips rack freely in Free Touch
+  view.root.querySelectorAll<HTMLElement>('.tx-pip').forEach((p, i) => {
+    p.addEventListener('click', () => { if (phase === 'free' && i !== rec.ratioIndex) { phase = 'busy'; void rackTo(i).then(() => { phase = 'free' }) } })
+  })
+
+  async function openLightTable(): Promise<void> {
+    const body = document.createElement('div')
+    body.className = 'tx-lt'
+    const days = Object.keys(save.days).map(Number).filter((d) => save.days[d].status !== 'playing').sort((a, b) => a - b)
+    if (!days.length) body.textContent = 'Nothing on the table yet. Surfaces keep; come back tomorrow.'
+    const dlg = openDialog({ edge: 'RANKIN 400 · LIGHT TABLE · ▸01', title: 'Light table', body, wide: true, actions: [{ id: 'done', label: 'Done', kind: 'primary' }] })
+    for (const d of days) {
+      const r = save.days[d]
+      let name = r.recipeId
+      try { name = getRecipe(r.recipeId).name } catch { /* a retired recipe */ }
+      const b = document.createElement('button')
+      b.type = 'button'
+      b.className = 'tx-slide'
+      b.dataset.state = r.status
+      const c = document.createElement('canvas')
+      c.width = c.height = 96
+      const date = dateForDay(d).toLocaleDateString('en-CA', { day: '2-digit', month: 'short', year: '2-digit' }).toUpperCase()
+      const lab = document.createElement('span')
+      lab.textContent = `${String(d).padStart(3, '0')} · ${name.toUpperCase()} · ${date}`
+      b.append(c, lab)
+      if (r.secret) { const pin = document.createElement('i'); pin.textContent = '✨'; b.append(pin) }
+      b.setAttribute('aria-label', `Day ${d}, ${name}, ${r.status === 'solved' ? 'solved' : 'missed'}. Open in Free Touch.`)
+      b.addEventListener('click', () => { dlg.close(); void openFreeTouch(d) })
+      body.append(b)
+      thumbnail(r.recipeId, 96).then((img) => c.getContext('2d')?.putImageData(img, 0, 0)).catch(() => { /* leave the slide dark */ })
+    }
+  }
+
+  async function openFreeTouch(d: number): Promise<void> {
+    if (!freeTouch) persist()
+    freeTouch = true
+    day = d
+    recipeId = save.days[d].recipeId
+    await reloadSpecimen()
+    keepTouching()
+  }
+
   async function share(): Promise<void> {
-    const text = shareText(day, rec, rows.map((r) => r.tiles), save.settings.tiles === 'contrast')
+    const text = shareText(day, save.days[day] ?? rec, rows.map((r) => r.tiles), save.settings.tiles === 'contrast')
     const r = await shareOrDownload({ text, title: 'Texturedle' })
     if (r === 'copied') toast('Copied.')
     else if (r === 'failed') toast("Couldn't share that.", { kind: 'error' })
@@ -569,9 +632,13 @@ export async function startTexturedle(deps: AppDeps): Promise<void> {
     const s = save.settings
     const sw = (label: string, on: boolean, fn: (v: boolean) => void) => body.append(createSwitch({ label, checked: on, onChange: (v) => { fn(v); persist() } }))
     sw('Captions', s.captions, (v) => { s.captions = v })
-    sw('Haptics', s.haptics, (v) => { s.haptics = v })
+    sw('Haptics', s.haptics, (v) => { s.haptics = v; audio.setHaptics(v) })
     sw('Hard mode (from tomorrow if you have guessed today)', s.hard, (v) => { s.hard = v; if (rec.guesses.length === 0 && rec.status === 'playing') rec.mode = v ? 'hard' : 'normal' })
     sw('Room tone', s.roomTone, (v) => { s.roomTone = v; audio.setRoomTone(v) })
+    sw('Hold like a loupe (phone tilt)', gyro.on, (v) => {
+      if (v) void gyro.enable().then((ok) => { s.gyro = ok; if (!ok) toast("This device won't share its tilt.") ; persist() })
+      else { gyro.disable(); s.gyro = false }
+    })
     body.append(createSegmented({ label: 'Tile colours', options: [{ value: 'standard', label: 'Standard' }, { value: 'contrast', label: 'High contrast' }], value: s.tiles, onChange: (v) => { s.tiles = v; view.root.dataset.tiles = v; persist() } }))
     body.append(createSegmented({ label: 'Quality', options: [{ value: 'auto', label: 'Auto' }, { value: 'high', label: 'High' }, { value: 'low', label: 'Low' }], value: s.quality, onChange: (v) => { s.quality = v; persist(); toast('Quality applies on the next load.') } }))
     if (!persistent) {
@@ -600,12 +667,38 @@ export async function startTexturedle(deps: AppDeps): Promise<void> {
     const finished = rec.status !== 'playing'
     deps.shell.setActions([
       ...(finished ? [{ id: 'share', label: 'Share', icon: 'download' as const, kind: 'primary' as const, priority: 0, onSelect: () => { void share() } }] : []),
+      { id: 'lighttable', label: 'Light table', icon: 'sheet' as const, priority: 3, onSelect: () => { void openLightTable() } },
       { id: 'settings', label: 'Settings', icon: 'more' as const, priority: 2, onSelect: openSettings },
-      { id: 'howto', label: 'How to play', icon: 'help' as const, priority: 1, shortcut: '?', onSelect: () => deps.shell.openHelp() },
     ])
   }
 
   audio.onCaption((t) => { if (save.settings.captions) view.caption(t) })
+
+  // sensor dust (SHOULD): a soft blob fixed on the sensor, visible at high effective f-numbers
+  const dust = document.createElement('button')
+  dust.type = 'button'
+  dust.className = 'tx-dust'
+  dust.dataset.txUi = '1'
+  dust.setAttribute('aria-label', 'Sensor dust')
+  view.frame.append(dust)
+  let dustGone = save.stats.blower
+  function updateDust(): void {
+    const o = dustGone || poster ? 0 : Math.max(0, Math.min(1, (RATIOS[rec.ratioIndex].nEff - 16) / 32))
+    dust.style.opacity = String(o * 0.55)
+    dust.hidden = o <= 0.02
+  }
+  dust.addEventListener('click', () => {
+    toast('Sensor dust. At f/48 it was always going to show.')
+    dust.animate([{ transform: 'scale(1)', opacity: dust.style.opacity }, { transform: 'scale(2.2) translate(30px,-20px)', opacity: '0' }], { duration: 500, easing: 'ease-out' })
+    audio.ui('iris')
+    dustGone = true
+    save.stats.blower = true
+    persist()
+    setTimeout(updateDust, 480)
+  })
+
+  // phone tilt (SHOULD), opt-in from Settings
+  const gyro = createGyro((x, y) => { if (input && !input.tiltLock) { input.tiltTarget.x = x; input.tiltTarget.y = y; bench.setTiltTarget({ x, y }) } })
 
   // ---------------- boot ----------------
   loadRecord()
@@ -616,7 +709,18 @@ export async function startTexturedle(deps: AppDeps): Promise<void> {
   ro.observe(view.viewer)
   window.visualViewport?.addEventListener('resize', () => view.layout())
   loader?.label(['Warming the lamp…', 'Stopping down…', 'Cleaning the sensor (mostly)…'][day % 3])
-  await useRatio(poster ? 0 : rec.ratioIndex, false)
+  if (!test && !poster && bakeRes() > 512) {
+    // progressive: a quick 256² preview first, the full bake swaps in when it lands (SHOULD)
+    const i0 = rec.ratioIndex
+    const prev = await bakeSurface(recipe, { ratio: RATIOS[i0].m, res: 256, physRes: 128, seed: 1, sizeMm: sizeFor(i0) })
+    rt = createRuntime(prev, recipe)
+    bench.setPortrait(view.portrait)
+    bench.setSurface(rt, RATIOS[i0], true)
+    renderer.setSurface(rt)
+    audio.setSurface(rt)
+    view.setTurret(i0)
+    void bakeFor(i0).then(() => { if (rec.ratioIndex === i0 && rt && rt.bake.res === 256) void useRatio(i0, true) })
+  } else await useRatio(poster ? 0 : rec.ratioIndex, false)
   loader?.progress(1)
   await loader?.done()
   phase = 'playing'
@@ -642,7 +746,7 @@ export async function startTexturedle(deps: AppDeps): Promise<void> {
       }
       requestAnimationFrame(sweep)
     }
-    if (rec.status === 'playing' || true) setTimeout(() => { if (bench.state.marble.where === 'dish') bench.marbleDrop(0, 0.4, 2.5) }, reduced() ? 0 : 600)
+    setTimeout(() => { if (bench.state.marble.where === 'dish') bench.marbleDrop(0, 0.4, 2.5) }, reduced() ? 0 : 600)
   }
 
   // poster composition
@@ -665,8 +769,8 @@ export async function startTexturedle(deps: AppDeps): Promise<void> {
   }
   const api = {
     poster: async () => { await composePoster() },
-    setDay: async (n: number) => { day = n; recipeId = recipeForDay(n, WALK, POOL).recipeId; await reloadSpecimen() },
-    loadRecipe: async (id: string, ratio = 0) => { recipeId = id; await reloadSpecimen(); if (ratio) await rackTo(ratio) },
+    setDay: async (n: number) => { freeTouch = false; view.root.dataset.free = '0'; day = n; recipeId = recipeForDay(n, WALK, POOL).recipeId; await reloadSpecimen() },
+    loadRecipe: async (id: string, ratio = 0) => { freeTouch = false; view.root.dataset.free = '0'; recipeId = id; await reloadSpecimen(); if (ratio) await rackTo(ratio) },
     setRatio: async (i: number) => { await rackTo(Math.max(0, Math.min(5, i))) },
     pause: () => { cancelAnimationFrame(raf); raf = 0 },
     resume: () => { if (!raf) { lastT = 0; raf = requestAnimationFrame(loop) } },
@@ -693,9 +797,20 @@ export async function startTexturedle(deps: AppDeps): Promise<void> {
     reveal: async () => { await revealSequence() },
     toScreen: (x: number, y: number): [number, number] => { const c = renderer.frameToClient(x, y); return [c.cx, c.cy] },
     lintAtlas: () => lintAtlas(),
+    lightTable: () => openLightTable(),
+    freeTouch: (d: number) => openFreeTouch(d),
     resetSave: () => { clearSave(); save = defaultSave(prefersReducedMotion()) },
     chips: () => notes.chips.map((c: Chip) => `${c.id}: ${c.text}`),
     stats: () => bench.stats,
+    snagStats: () => {
+      if (!rt) return null
+      let mx = 0, sum = 0, n = 0, over = 0
+      const f = bench.frame()
+      for (let y = -f.h / 2; y <= f.h / 2; y += 0.05) for (let x = -f.w / 2; x <= f.w / 2; x += 0.05) {
+        const v = rt.snagAt(x, y); mx = Math.max(mx, v); sum += v; n++; if (v > 0.3) over++
+      }
+      return { max: mx, mean: sum / n, over03: over / n }
+    },
     probe: (kind: 'marble' | 'lens' | 'burlap', x: number, y: number) => {
       if (!rt) return null
       const o = rt.contactAt(kind, x, y, { d: 0, nx: 0, ny: 0, nz: 1, layer: 0 })
@@ -713,6 +828,7 @@ export async function startTexturedle(deps: AppDeps): Promise<void> {
       perf: { fps: Math.round(fps), tier: quality, bakeMs: Math.round(bakeMs) },
       errors: (window.__game?.errors?.() ?? []) as string[],
       surface: SURFACE_SOURCE,
+      secret: rec.secret,
     }),
   }
   installGameApi('texturedle', 'texturedle@1', api)
@@ -722,10 +838,13 @@ export async function startTexturedle(deps: AppDeps): Promise<void> {
     answer = atlasEntry(recipe.atlasId) ?? ATLAS[0]
     bakes.clear()
     rt = null
+    bench.resetStats()
+    lampSwept = 0
     loadRecord()
     renderRows(false)
     chipsDirty = true
     view.cardWrap.hidden = true
+    view.root.dataset.reveal = '0'
     renderer.endReveal()
     view.input.disabled = false
     view.guessBtn.disabled = false
@@ -734,6 +853,11 @@ export async function startTexturedle(deps: AppDeps): Promise<void> {
     if (rec.status !== 'playing') showCard(true)
     draw()
   }
+
+  // debug views
+  if (F.debug === 'library') void import('../debug/inspector').then((m) => m.showLibrary(view.root))
+  const curRt = rt as SurfaceRuntime | null
+  if (F.debug === 'bake' && curRt) { const b = curRt.bake; void import('../debug/inspector').then((m) => m.showBakeMaps(view.root, b)) }
 
   // first real frame
   if (poster) await composePoster()

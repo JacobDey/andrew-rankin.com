@@ -1,24 +1,265 @@
 <!doctype html>
-<html lang="en">
+<html lang="en-CA" data-game="hub">
 <head>
+  <script>
+    (function () {
+      var d = document.documentElement, lock = d.getAttribute('data-scheme-lock'), t = null;
+      try { t = localStorage.getItem('ar:theme'); } catch (e) {}
+      var q = /[?&]theme=(light|dark)\b/.exec(location.search);   // test/screenshot override, not persisted
+      if (q) t = q[1];
+      if (lock === 'light' || lock === 'dark') t = lock;
+      if (t === 'light' || t === 'dark') d.setAttribute('data-theme', t);
+      if (/[?&]motion=reduce\b/.test(location.search)) d.setAttribute('data-motion', 'reduce');
+    })();
+  </script>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Andrew Rankin — Minigames</title>
-  <meta name="description" content="Six photography minigames and physics toys, dictated over a sink of dishes." />
-  <link rel="stylesheet" href="/src/hub/placeholder.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Andrew Rankin · Minigame Collection</title>
+  <meta name="description" content="Six photography toys and games, dictated over a sink of dishes: a texture puzzle, two darkrooms, a police story, a lens bench and a whole studio." />
+  <meta name="theme-color" content="#121110" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Andrew Rankin · Minigame Collection" />
+  <meta property="og:description" content="Six photographic toys, thought up at the kitchen sink." />
+  <meta property="og:image" content="/og/hub.jpg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <script>
+    // A cross-document view transition that the other page did not opt into is skipped; its
+    // promises then reject. Nothing is wrong, so keep that out of the error log.
+    (function () {
+      function quiet(e) { var v = e.viewTransition; if (!v) return; var n = function () {};
+        if (v.ready) v.ready.catch(n); if (v.finished) v.finished.catch(n); if (v.updateCallbackDone) v.updateCallbackDone.catch(n); }
+      addEventListener('pagereveal', quiet); addEventListener('pageswap', quiet);
+    })();
+  </script>
+  <script type="speculationrules">
+  { "prefetch": [ { "where": { "href_matches": "/games/*" }, "eagerness": "moderate" } ] }
+  </script>
+  <script type="module" src="/src/hub/main.ts"></script>
 </head>
 <body>
-  <main class="sheet">
-    <h1>Andrew Rankin</h1>
-    <p class="tag">Minigame collection · developing now</p>
-    <ol class="strip">
-      <li><a href="/games/texturedle/"><span>01</span>Texturedle</a></li>
-      <li><a href="/games/darkroom/"><span>02</span>Darkroom</a></li>
-      <li><a href="/games/plates/"><span>03</span>Plates</a></li>
-      <li><a href="/games/latent/"><span>04</span>Latent Image</a></li>
-      <li><a href="/games/lensbench/"><span>05</span>Lens Bench</a></li>
-      <li><a href="/games/studio/"><span>06</span>The Studio</a></li>
-    </ol>
-  </main>
+  <a class="ar-skip" href="#sheet">Skip to the games</a>
+  <div class="hub-table" aria-hidden="true"><div class="hub-table__dark"></div><div class="hub-table__lit"></div></div>
+  <script>
+    // Power-on flicker (hub.md §7): first hub load per session, light theme, motion allowed. No sound.
+    (function () {
+      try {
+        var d = document.documentElement, t = d.getAttribute('data-theme');
+        var dark = t ? t === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+        if (dark || d.getAttribute('data-motion') === 'reduce' || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+        if (/[?&](t|og|poster|test|loupe)=/.test(location.search) || sessionStorage.getItem('ar:hub:lit')) return;
+        sessionStorage.setItem('ar:hub:lit', '1');
+        var el = document.querySelector('.hub-table');
+        el.setAttribute('data-flicker', '');
+        setTimeout(function () { el.removeAttribute('data-flicker'); }, 700);
+      } catch (e) {}
+    })();
+  </script>
+  <div class="hub-page">
+    <main class="hub-main" id="main">
+      <section class="hub-intro" aria-labelledby="hub-h1">
+        <p class="hub-kicker-top">Minigame collection · Roll 01</p>
+        <h1 class="hub-wordmark" id="hub-h1" data-hub-wordmark>Andrew Rankin</h1>
+        <p class="hub-lede">Six photographic toys, thought up at the kitchen sink.</p>
+        <p class="hub-introtext">These started as a few sentences Andrew said out loud while washing the dishes. A friend tried to type them down word for word, which is why the notes are a little damp around the edges. This is that roll, developed: six frames, each an idea you can tilt, slosh, focus, expose and print. Look closer at any of them, then step inside.</p>
+        <p class="hub-hint" data-hub-hint>Tap a frame to play. Press and hold to look closer.</p>
+      </section>
+
+      <section class="hub-sheet" id="sheet" aria-labelledby="hub-h2" tabindex="-1">
+        <h2 class="visually-hidden" id="hub-h2">Roll 01: six games</h2>
+        <div class="hub-paper">
+          <div class="hub-paper__head" aria-hidden="true">
+            <span class="hub-pencil">Roll 01, the sink sessions</span>
+            <span class="hub-proof">Proof</span>
+          </div>
+          <div class="hub-exposed">
+            <ol class="hub-frames" role="list"><!--frames-->
+      <li class="hub-frame" data-slug="texturedle" data-frame="1" data-status="developing" style="--accent-lit: #EA8A5F">
+        <article class="hub-card" aria-labelledby="t-texturedle">
+          <div class="hub-strip" aria-hidden="true">
+            <div class="hub-perfs hub-perfs--top"></div>
+            <div class="hub-perfs hub-perfs--bottom"></div>
+            <span class="hub-edge hub-edge--stock">RANKIN 400</span>
+            <svg class="hub-dx" viewBox="0 0 32 1" preserveAspectRatio="none"><path d="M1 0h.88v1h-.88zM2 0h.88v1h-.88zM3 0h.88v1h-.88zM5 0h.88v1h-.88zM9 0h.88v1h-.88zM10 0h.88v1h-.88zM13 0h.88v1h-.88zM15 0h.88v1h-.88zM17 0h.88v1h-.88zM18 0h.88v1h-.88zM19 0h.88v1h-.88zM20 0h.88v1h-.88zM25 0h.88v1h-.88zM26 0h.88v1h-.88zM27 0h.88v1h-.88zM29 0h.88v1h-.88z"/></svg>
+            <span class="hub-edge hub-edge--num">1</span>
+            <span class="hub-edge hub-edge--sub">▸1A</span>
+            <span class="hub-edge hub-edge--side">TOO CLOSE TO FOCUS · 0.3 MM</span>
+            <div class="hub-image">
+              <noscript><img src="/posters/texturedle.jpg" loading="lazy" decoding="async" alt="" /></noscript>
+            <span class="hub-stamp">In the tray</span>
+            </div>
+          </div>
+          <div class="hub-caption">
+            <p class="hub-kicker" aria-hidden="true">▸01 · NOTE 1 · TEXTURE-DLE</p>
+            <h3 class="hub-title"><a href="/games/texturedle/" id="t-texturedle" aria-describedby="b-texturedle m-texturedle p-texturedle">Texturedle</a></h3>
+            <p class="hub-tagline">One surface a day, much too close.</p>
+            <p class="hub-blurb" id="b-texturedle">A photograph taken far too close to something you've definitely touched. Tilt the camera five degrees, roll a marble across the grain, drag a fine cloth and a rough one over it, then name the surface before your guesses run out.</p>
+            <p class="hub-metaline"><span class="hub-meta" id="m-texturedle">Puzzle · Daily · ~5 min</span><span class="hub-cta" aria-hidden="true">Play ▸</span></p>
+            <span class="visually-hidden" id="p-texturedle"></span>
+          </div>
+        </article>
+      </li>
+      <li class="hub-frame" data-slug="darkroom" data-frame="2" data-status="developing" style="--accent-lit: #86ABF0">
+        <article class="hub-card" aria-labelledby="t-darkroom">
+          <div class="hub-strip" aria-hidden="true">
+            <div class="hub-perfs hub-perfs--top"></div>
+            <div class="hub-perfs hub-perfs--bottom"></div>
+            <span class="hub-edge hub-edge--joke">DO NOT WASH WITH DISHES</span>
+            <svg class="hub-dx" viewBox="0 0 32 1" preserveAspectRatio="none"><path d="M1 0h.88v1h-.88zM2 0h.88v1h-.88zM5 0h.88v1h-.88zM9 0h.88v1h-.88zM10 0h.88v1h-.88zM15 0h.88v1h-.88zM17 0h.88v1h-.88zM18 0h.88v1h-.88zM19 0h.88v1h-.88zM22 0h.88v1h-.88zM25 0h.88v1h-.88zM26 0h.88v1h-.88zM28 0h.88v1h-.88zM30 0h.88v1h-.88zM31 0h.88v1h-.88z"/></svg>
+            <span class="hub-edge hub-edge--num">2</span>
+            <span class="hub-edge hub-edge--sub">▸2A</span>
+            <span class="hub-edge hub-edge--side">RANKIN</span>
+            <div class="hub-image">
+              <noscript><img src="/posters/darkroom.jpg" loading="lazy" decoding="async" alt="" /></noscript>
+            <span class="hub-stamp">In the tray</span>
+            </div>
+          </div>
+          <div class="hub-caption">
+            <p class="hub-kicker" aria-hidden="true">▸02 · NOTE 2 · DARKROOM</p>
+            <h3 class="hub-title"><a href="/games/darkroom/" id="t-darkroom" aria-describedby="b-darkroom m-darkroom p-darkroom">Darkroom</a></h3>
+            <p class="hub-tagline">A darkroom you can slosh.</p>
+            <p class="hub-blurb" id="b-darkroom">Bring your own picture. Drop in a PNG, prep it, then print it in silver under the safelight or in iron as a cyanotype, rocking the tray until the Prussian blue blooms. Every drop of chemistry is simulated, and the bench saves where you left it.</p>
+            <p class="hub-metaline"><span class="hub-meta" id="m-darkroom">Toy · Chemistry · Saves</span><span class="hub-cta" aria-hidden="true">Play ▸</span></p>
+            <span class="visually-hidden" id="p-darkroom"></span>
+          </div>
+        </article>
+      </li>
+      <li class="hub-frame" data-slug="plates" data-frame="3" data-status="developing" style="--accent-lit: #E6DFCB">
+        <article class="hub-card" aria-labelledby="t-plates">
+          <div class="hub-strip" aria-hidden="true">
+            <div class="hub-perfs hub-perfs--top"></div>
+            <div class="hub-perfs hub-perfs--bottom"></div>
+            <span class="hub-edge hub-edge--stock">RANKIN 400</span>
+            <svg class="hub-dx" viewBox="0 0 32 1" preserveAspectRatio="none"><path d="M1 0h.88v1h-.88zM2 0h.88v1h-.88zM3 0h.88v1h-.88zM9 0h.88v1h-.88zM10 0h.88v1h-.88zM12 0h.88v1h-.88zM13 0h.88v1h-.88zM17 0h.88v1h-.88zM18 0h.88v1h-.88zM23 0h.88v1h-.88zM25 0h.88v1h-.88zM26 0h.88v1h-.88zM27 0h.88v1h-.88zM29 0h.88v1h-.88z"/></svg>
+            <span class="hub-edge hub-edge--num">3</span>
+            <span class="hub-edge hub-edge--sub">▸3A</span>
+            <span class="hub-edge hub-edge--side">HANDLE GLASS BY THE EDGES</span>
+            <div class="hub-image">
+              <noscript><img src="/posters/plates.jpg" loading="lazy" decoding="async" alt="" /></noscript>
+            <span class="hub-stamp">In the tray</span>
+            </div>
+          </div>
+          <div class="hub-caption">
+            <p class="hub-kicker" aria-hidden="true">▸03 · NOTE 3 · DARKROOM, 1-BIT</p>
+            <h3 class="hub-title"><a href="/games/plates/" id="t-plates" aria-describedby="b-plates m-plates p-plates">Ruby Sector</a></h3>
+            <p class="hub-tagline">Twelve undeveloped plates know why.</p>
+            <p class="hub-blurb" id="b-plates">A lighthouse showed white where it should have shown red, and three men drowned. Develop a dead photographer's glass plates in a sloshing, one-bit darkroom, look with one eye and then the other, and work out who everyone was and what became of them.</p>
+            <p class="hub-metaline"><span class="hub-meta" id="m-plates">Mystery · 1-bit · Deduction</span><span class="hub-cta" aria-hidden="true">Play ▸</span></p>
+            <span class="visually-hidden" id="p-plates"></span>
+          </div>
+        </article>
+      </li>
+      <li class="hub-frame" data-slug="latent" data-frame="4" data-status="developing" style="--accent-lit: #E9B04A">
+        <article class="hub-card" aria-labelledby="t-latent">
+          <div class="hub-strip" aria-hidden="true">
+            <div class="hub-perfs hub-perfs--top"></div>
+            <div class="hub-perfs hub-perfs--bottom"></div>
+            <span class="hub-edge hub-edge--joke">EXHIBIT ▸04A · DO NOT FOLD</span>
+            <svg class="hub-dx" viewBox="0 0 32 1" preserveAspectRatio="none"><path d="M1 0h.88v1h-.88zM2 0h.88v1h-.88zM4 0h.88v1h-.88zM5 0h.88v1h-.88zM9 0h.88v1h-.88zM10 0h.88v1h-.88zM15 0h.88v1h-.88zM17 0h.88v1h-.88zM18 0h.88v1h-.88zM19 0h.88v1h-.88zM21 0h.88v1h-.88zM25 0h.88v1h-.88zM26 0h.88v1h-.88zM29 0h.88v1h-.88zM31 0h.88v1h-.88z"/></svg>
+            <span class="hub-edge hub-edge--num">4</span>
+            <span class="hub-edge hub-edge--sub">▸4A</span>
+            <span class="hub-edge hub-edge--side">RANKIN</span>
+            <div class="hub-image">
+              <noscript><img src="/posters/latent.jpg" loading="lazy" decoding="async" alt="" /></noscript>
+            <span class="hub-stamp">In the tray</span>
+            </div>
+          </div>
+          <div class="hub-caption">
+            <p class="hub-kicker" aria-hidden="true">▸04 · NOTE 4 · POLICE STORY</p>
+            <h3 class="hub-title"><a href="/games/latent/" id="t-latent" aria-describedby="b-latent m-latent p-latent">Latent Image</a></h3>
+            <p class="hub-tagline">Nothing is evidence until you develop it.</p>
+            <p class="hub-blurb" id="b-latent">An old case, a police photo archive and a search box. Type a word, pull up negatives and records in any order, and print what nobody bothered to look at. Each print gives you the next word. The story is in there. It just hasn't come up yet.</p>
+            <p class="hub-metaline"><span class="hub-meta" id="m-latent">Story · Search · Mystery</span><span class="hub-cta" aria-hidden="true">Play ▸</span></p>
+            <span class="visually-hidden" id="p-latent"></span>
+          </div>
+        </article>
+      </li>
+      <li class="hub-frame" data-slug="lensbench" data-frame="5" data-status="developing" style="--accent-lit: #AE97F2">
+        <article class="hub-card" aria-labelledby="t-lensbench">
+          <div class="hub-strip" aria-hidden="true">
+            <div class="hub-perfs hub-perfs--top"></div>
+            <div class="hub-perfs hub-perfs--bottom"></div>
+            <span class="hub-edge hub-edge--stock">RANKIN 400</span>
+            <svg class="hub-dx" viewBox="0 0 32 1" preserveAspectRatio="none"><path d="M1 0h.88v1h-.88zM2 0h.88v1h-.88zM4 0h.88v1h-.88zM5 0h.88v1h-.88zM9 0h.88v1h-.88zM10 0h.88v1h-.88zM13 0h.88v1h-.88zM15 0h.88v1h-.88zM17 0h.88v1h-.88zM18 0h.88v1h-.88zM20 0h.88v1h-.88zM21 0h.88v1h-.88zM22 0h.88v1h-.88zM25 0h.88v1h-.88zM26 0h.88v1h-.88zM27 0h.88v1h-.88zM30 0h.88v1h-.88zM31 0h.88v1h-.88z"/></svg>
+            <span class="hub-edge hub-edge--num">5</span>
+            <span class="hub-edge hub-edge--sub">▸5A</span>
+            <span class="hub-edge hub-edge--side">CIRCLE OF CONFUSION ≤ 0.03</span>
+            <div class="hub-image">
+              <noscript><img src="/posters/lensbench.jpg" loading="lazy" decoding="async" alt="" /></noscript>
+            <span class="hub-stamp">In the tray</span>
+            </div>
+          </div>
+          <div class="hub-caption">
+            <p class="hub-kicker" aria-hidden="true">▸05 · NOTE 5 · CAMERA DESIGNER</p>
+            <h3 class="hub-title"><a href="/games/lensbench/" id="t-lensbench" aria-describedby="b-lensbench m-lensbench p-lensbench">Lens Bench</a></h3>
+            <p class="hub-tagline">Build the glass. Shoot the street.</p>
+            <p class="hub-blurb" id="b-lensbench">Slide lenses along an optical rail and watch real rays bend, focus and fringe. Choose an aperture and a shutter, bolt on a body, then carry your camera down to a small 3D street, take actual photographs with every flaw you built in, and develop the roll.</p>
+            <p class="hub-metaline"><span class="hub-meta" id="m-lensbench">Toy · Optics · 3D</span><span class="hub-cta" aria-hidden="true">Play ▸</span></p>
+            <span class="visually-hidden" id="p-lensbench"></span>
+          </div>
+        </article>
+      </li>
+      <li class="hub-frame" data-slug="studio" data-frame="6" data-status="developing" style="--accent-lit: #78CB97">
+        <article class="hub-card" aria-labelledby="t-studio">
+          <div class="hub-strip" aria-hidden="true">
+            <div class="hub-perfs hub-perfs--top"></div>
+            <div class="hub-perfs hub-perfs--bottom"></div>
+            <span class="hub-edge hub-edge--joke">FRIEND'S FRAME · NOT DICTATED</span>
+            <svg class="hub-dx" viewBox="0 0 32 1" preserveAspectRatio="none"><path d="M1 0h.88v1h-.88zM2 0h.88v1h-.88zM3 0h.88v1h-.88zM6 0h.88v1h-.88zM7 0h.88v1h-.88zM9 0h.88v1h-.88zM10 0h.88v1h-.88zM11 0h.88v1h-.88zM13 0h.88v1h-.88zM17 0h.88v1h-.88zM18 0h.88v1h-.88zM19 0h.88v1h-.88zM21 0h.88v1h-.88zM23 0h.88v1h-.88zM25 0h.88v1h-.88zM26 0h.88v1h-.88zM29 0h.88v1h-.88z"/></svg>
+            <span class="hub-edge hub-edge--num">6</span>
+            <span class="hub-edge hub-edge--sub">▸6A</span>
+            <span class="hub-edge hub-edge--side">RANKIN</span>
+            <div class="hub-image">
+              <noscript><img src="/posters/studio.jpg" loading="lazy" decoding="async" alt="" /></noscript>
+            <span class="hub-stamp">In the tray</span>
+            </div>
+          </div>
+          <div class="hub-caption">
+            <p class="hub-kicker" aria-hidden="true">▸06 · NOTE 6 · THE WHOLE STUDIO</p>
+            <h3 class="hub-title"><a href="/games/studio/" id="t-studio" aria-describedby="b-studio m-studio p-studio">Sunny 16</a></h3>
+            <p class="hub-tagline">A house that takes pictures.</p>
+            <p class="hub-blurb" id="b-studio">A little summer house that takes pictures. Build a camera in the garage, set it up in a backyard full of physics toys, then carry the roll down to the basement darkroom to find out what you caught. Everything you print stays.</p>
+          <p class="hub-credit">Frame 06 wasn't in the dictation. The friend holding the phone asked for it.</p>
+            <p class="hub-metaline"><span class="hub-meta" id="m-studio">Sandbox · Physics · 3 rooms</span><span class="hub-cta" aria-hidden="true">Play ▸</span></p>
+            <span class="visually-hidden" id="p-studio"></span>
+          </div>
+        </article>
+      </li>
+      <!--/frames--></ol>
+          </div>
+          <p class="hub-paper__foot" aria-hidden="true">6 exp. · Contact · Grade 2</p>
+        </div>
+      </section>
+
+      <figure class="hub-dictation" aria-labelledby="hub-dict-edge">
+        <div class="hub-tape" aria-hidden="true"></div>
+        <p class="hub-dictation__edge" id="hub-dict-edge">The dictation · typed at the sink, mostly verbatim</p>
+        <blockquote class="hub-dictation__notes">
+          <p>Andrew-Rankin.com</p>
+          <p class="hub-gap">Minigame Collection</p>
+          <p class="hub-gap" data-item="1">1. Texture-dle: zoomed-in photo with a dense 3d texture map. Camera can tilt 5 deg. a marble can be rolled across, and a fine cloth and a rougher cloth. a "rusty mailbox" texture to start</p>
+          <p data-item="2">2. Darkroom: a simulated physics toy darkroom. Tactile liquid sloshing with reactive paper. Tactile adding/removing light. <span data-mark="cyanide">Cyanide</span><span class="visually-hidden"> (he means cyanotype)</span> chemistry cyanotype support. Import a PNG. To make a cyanotype. Photo prep. Simulated chemistry. You can do save states</p>
+          <p data-item="3">3. Darkroom but it's styled like return of the <span data-mark="obrah">obrah dinn</span></p>
+          <p data-item="4">4. ^ this but it's a police story like a Sam Barlow game</p>
+          <p data-item="5">5. Camera designer with optic/physics. Take it out to a simple web3d scene and take real photos and develop them.</p>
+          <p class="hub-dictation__hand" data-item="6">6. a full physics-toy photography studio: darkroom, build-a-camera room, and a 'backyard' room to take photos</p>
+        </blockquote>
+        <figcaption>Dictated by Andrew Rankin. Typed by a friend. Item 6 is the friend's.</figcaption>
+      </figure>
+    </main>
+
+    <footer class="hub-footer">
+      <p>Ideas by Andrew Rankin, at the sink. Typed by a friend. Built with Claude.</p>
+      <p class="hub-footer__row"><span>No accounts. Your saves stay in this browser.</span>
+        <a href="https://github.com/JacobDey/andrew-rankin.com" data-hub-repo>Source on GitHub</a>
+        <button type="button" class="hub-linkbtn" data-hub-act="system" hidden>Match my system</button>
+        <button type="button" class="hub-linkbtn" data-hub-act="sound" hidden>Sound on</button></p>
+      <p class="hub-footer__edge">Rankin 400 · Roll 01 · 06 exp. · 2026</p>
+      <p class="hub-footer__small">Ruby Sector and Latent Image tip their hats to the one-bit deduction of <cite>Return of the Obra Dinn</cite> and the archive-diving stories of Sam Barlow. Every story, character and picture here is original.</p>
+    </footer>
+  </div>
 </body>
 </html>

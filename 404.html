@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en-CA" data-game="hub">
+<head>
+  <script>
+    (function () {
+      var d = document.documentElement, lock = d.getAttribute('data-scheme-lock'), t = null;
+      try { t = localStorage.getItem('ar:theme'); } catch (e) {}
+      var q = /[?&]theme=(light|dark)\b/.exec(location.search);   // test/screenshot override, not persisted
+      if (q) t = q[1];
+      if (lock === 'light' || lock === 'dark') t = lock;
+      if (t === 'light' || t === 'dark') d.setAttribute('data-theme', t);
+      if (/[?&]motion=reduce\b/.test(location.search)) d.setAttribute('data-motion', 'reduce');
+    })();
+  </script>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Frame not found · Andrew Rankin</title>
+  <meta name="description" content="This part of the roll got fogged." />
+  <meta name="robots" content="noindex" />
+  <meta name="theme-color" content="#121110" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <script type="module" src="/src/hub/notfound.ts"></script>
+</head>
+<body>
+  <a class="ar-skip" href="#main">Skip to the message</a>
+  <div class="hub-table" aria-hidden="true"><div class="hub-table__dark"></div><div class="hub-table__lit"></div></div>
+  <div class="hub-page">
+    <main class="nf-main" id="main" tabindex="-1">
+      <div class="nf-frame" aria-hidden="true">
+        <div class="hub-frame nf-cell">
+          <div class="hub-card">
+            <div class="hub-strip">
+              <div class="hub-perfs hub-perfs--top"></div>
+              <div class="hub-perfs hub-perfs--bottom"></div>
+              <span class="hub-edge hub-edge--stock">RANKIN 400</span>
+              <span class="hub-edge hub-edge--num">00</span>
+              <span class="hub-edge hub-edge--sub">▸404</span>
+              <div class="hub-image nf-fog"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <h1 class="nf-title">Frame not found.</h1>
+      <p class="nf-body">This part of the roll got fogged.</p>
+      <p><a class="ar-btn ar-btn--primary ar-btn--lg nf-btn" href="/">Contact sheet</a></p>
+    </main>
+  </div>
+</body>
+</html>

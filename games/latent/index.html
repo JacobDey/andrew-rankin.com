@@ -1,16 +1,31 @@
 <!doctype html>
-<html lang="en">
+<html lang="en-CA" data-game="latent" data-scheme-lock="dark" data-grain="off">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Latent Image — Andrew Rankin</title>
-  <link rel="stylesheet" href="/src/hub/placeholder.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Latent Image · Andrew Rankin</title>
+  <meta name="description" content="A police story told through an archive: search, print forgotten negatives, and develop the case in any order you like." />
+  <meta name="theme-color" content="#140302" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <meta property="og:title" content="Latent Image · Andrew Rankin" />
+  <meta property="og:description" content="A police story told through an archive: search, print forgotten negatives, and develop the case in any order you like." />
+  <meta property="og:image" content="/og/latent.jpg" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <script>
+    (function () {
+      var d = document.documentElement, lock = d.getAttribute('data-scheme-lock'), t = null;
+      try { t = localStorage.getItem('ar:theme'); } catch (e) {}
+      var q = /[?&]theme=(light|dark)\b/.exec(location.search);   // test/screenshot override, not persisted
+      if (q) t = q[1];
+      if (lock === 'light' || lock === 'dark') t = lock;
+      if (t === 'light' || t === 'dark') d.setAttribute('data-theme', t);
+      if (/[?&]motion=reduce\b/.test(location.search)) d.setAttribute('data-motion', 'reduce');
+    })();
+  </script>
+  <script type="module" src="./main.ts"></script>
 </head>
 <body>
-  <main class="sheet">
-    <h1>Latent Image</h1>
-    <p class="tag">In the developer tray. Check back soon.</p>
-    <p><a href="/" style="color:var(--ink)">&larr; Back to the contact sheet</a></p>
-  </main>
+  <main id="stage" class="ar-stage" tabindex="-1"></main>
+  <noscript>Latent Image needs JavaScript: it develops its film and prints in your browser.</noscript>
 </body>
 </html>

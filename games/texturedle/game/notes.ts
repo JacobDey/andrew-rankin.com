@@ -5,7 +5,7 @@
 import type { BenchEvent, ProbeStats, RatioSpec, SurfaceRuntime, RGB } from '../contracts'
 
 export type Sense = 'marble' | 'lens' | 'burlap' | 'light' | 'tap'
-export interface Chip { id: string; sense: Sense; text: string }
+export interface Chip { id: string; sense: Sense; text: string; family?: string }
 
 // fixed 24-name palette, nearest by ΔE (CIELAB)
 const PALETTE: Array<[string, string]> = [
@@ -49,13 +49,31 @@ function albedoName(rt: SurfaceRuntime, x: number, y: number): string {
   return colourName([lin(b.albedo[k * 4] / 255), lin(b.albedo[k * 4 + 1] / 255), lin(b.albedo[k * 4 + 2] / 255)])
 }
 
+/** Colour name of a layer: sampled where that layer is on top, near (x, y). */
+function layerName(rt: SurfaceRuntime, layer: number, x: number, y: number): string {
+  const b = rt.bake
+  if ((b.phys[layer]?.metalness ?? 0) > 0.5) return 'grey metal'
+  const ci = Math.floor((x + b.sizeMm / 2) / b.mmPerTexel), cj = Math.floor((y + b.sizeMm / 2) / b.mmPerTexel)
+  // the nearest texel where this layer is on top (and not a thin, blended edge)
+  let best = -1, bd = Infinity
+  const N = b.res * b.res
+  for (let j = 0; j < b.res; j += 2) for (let i = 0; i < b.res; i += 2) {
+    const k = j * b.res + i
+    if (b.topLayer[k] !== layer || b.layerT[layer * N + k] < 8) continue
+    const d = (i - ci) ** 2 + (j - cj) ** 2
+    if (d < bd) { bd = d; best = k }
+  }
+  if (best >= 0) return colourName([lin(b.albedo[best * 4] / 255), lin(b.albedo[best * 4 + 1] / 255), lin(b.albedo[best * 4 + 2] / 255)])
+  return albedoName(rt, x, y)
+}
+
 const BODY_TEXT: Record<string, (f: number) => string> = {
   'hollow-sheet': (f) => `Hollow metal ring ≈ ${Math.round(f / 10) * 10} Hz`,
   'solid-stone': () => 'Dull stony tick', board: () => 'Woody knock', pane: () => 'Glassy tock', ceramic: () => 'Bright clink',
   tube: (f) => `Ringing tube ≈ ${Math.round(f / 100) * 100} Hz`, 'rubber-ball': () => 'Rubbery boing', fruit: () => 'Soft, wet puk', soft: () => 'Muffled, no ring',
 }
 
-export interface NotesContext { lampDeg: number; lampMode: 'rake' | 'ring'; tiltDeg: number; ratio: RatioSpec; frameW: number; frameH: number }
+export interface NotesContext { lampDeg: number; lampMode: 'rake' | 'ring'; tiltDeg: number; ratio: RatioSpec; frameW: number; frameH: number; burlapAt?: { x: number; y: number } | null }
 
 export interface Notes {
   ingest(events: BenchEvent[], stats: ProbeStats, rt: SurfaceRuntime, ctx: NotesContext): Chip[]
@@ -68,7 +86,10 @@ export function createNotes(): Notes {
   const chips: Chip[] = []
   const have = new Set<string>()
   const families = new Set<string>()
-  let layerSeq: string[] = []
+  const layerSeq: string[] = []
+  const layers: Array<{ layer: number; name: string }> = []
+  const layerSeen = new Set<number>()
+  let startIdx = -1
   let firstImpact = true
   let lampStart: number | null = null
   let rollT = 0
@@ -79,7 +100,7 @@ export function createNotes(): Notes {
     if (families.has(family)) return null
     families.add(family)
     have.add(id)
-    const c = { id, sense, text }
+    const c = { id, sense, text, family }
     chips.push(c)
     return c
   }
@@ -94,8 +115,7 @@ export function createNotes(): Notes {
       for (const c of saved) {
         chips.push(c)
         have.add(c.id)
-        families.add(c.id.split('.')[0] === 'bounce' || c.id.split('.')[0] === 'body' ? c.id.split('.')[0] : c.id.startsWith('lens.glide') || c.id.startsWith('lens.grip') ? 'lens.feel' : c.id)
-        if (c.id === 'burlap.layers') families.add('burlap.layers')
+        families.add(c.family ?? c.id)
       }
     },
     ingest(events, stats, rt, ctx) {
@@ -120,19 +140,26 @@ export function createNotes(): Notes {
           push(add('roll.trapped', 'marble', 'Settles in pits'))
         } else if (e.t === 'offEdge' && rt.recipe.orientation === 'ceiling') {
           push(add('ceiling', 'marble', "The marble won't stay on it"))
-        } else if (e.t === 'layerRevealed' && e.by === 'burlap') {
+        } else if (e.t === 'layerRevealed') {
+          if (!layerSeen.has(e.layer)) {
+            layerSeen.add(e.layer)
+            layers.push({ layer: e.layer, name: layerName(rt, e.layer, e.x, e.y) })
+          }
+          if (e.by !== 'burlap') continue
           probes.burlap = true
-          const nm = albedoName(rt, e.x, e.y)
-          if (layerSeq[layerSeq.length - 1] !== nm) layerSeq.push(nm)
-          if (layerSeq.length >= 2) {
-            const text = `Scrubs through: ${layerSeq.join(' → ')}`
+          // top to bottom, from the layer the burlap started on, down through what it exposed
+          const deeper = layers.filter((l) => startIdx < 0 || l.layer < startIdx).sort((a, b) => b.layer - a.layer).map((l) => l.name)
+          const chain = layerSeq.length ? [layerSeq[0], ...deeper] : deeper
+          const names = chain.filter((n, i) => i === 0 || n !== chain[i - 1])
+          if (names.length >= 2) {
+            const text = `Scrubs through: ${names.join(' → ')}`
             const ex = chips.find((c) => c.id === 'burlap.layers')
             if (ex) { if (ex.text !== text) { ex.text = text; out.push(ex) } }
             else push(add('burlap.layers', 'burlap', text))
           }
         } else if (e.t === 'snag') {
           probes.burlap = true
-        } else if (e.t === 'avalanche' && stats.avalanche > 0.002) {
+        } else if (e.t === 'avalanche' && stats.avalanche > 0.002 && (ctx.tiltDeg >= 1 || stats.tiltMax >= 1)) {
           push(add('grit.slides', 'light', 'Grit slides when tilted'))
         } else if (e.t === 'slip') {
           if (e.cloth === 'lens') probes.lens = true
@@ -140,7 +167,13 @@ export function createNotes(): Notes {
         }
       }
       // the colour you start scrubbing from
-      if (stats.wiped.burlap > 0.05 && layerSeq.length === 0) layerSeq.push(albedoName(rt, 0, 0))
+      if (ctx.burlapAt && layerSeq.length === 0) {
+        layerSeq.push(albedoName(rt, ctx.burlapAt.x, ctx.burlapAt.y))
+        const b = rt.bake
+        const i = Math.min(b.res - 1, Math.max(0, Math.floor((ctx.burlapAt.x + b.sizeMm / 2) / b.mmPerTexel)))
+        const j = Math.min(b.res - 1, Math.max(0, Math.floor((ctx.burlapAt.y + b.sizeMm / 2) / b.mmPerTexel)))
+        startIdx = b.topLayer[j * b.res + i]
+      }
       if (stats.wiped.lens > 0.1) probes.lens = true
       if (stats.wiped.burlap > 0.1) probes.burlap = true
       // marble rolling character

@@ -146,7 +146,7 @@ export function createView(stage: HTMLElement): View {
   guessbar.append(sugg, input, guessBtn)
   const msg = h('div', 'tx-msg')
   msg.setAttribute('aria-live', 'polite')
-  const gwrap = h('div')
+  const gwrap = h('div', 'tx-gwrap')
   gwrap.append(guessbar, msg)
   side.append(notes, turret, guesses, gwrap)
   const cardWrap = h('div', 'tx-card-wrap')
@@ -155,6 +155,8 @@ export function createView(stage: HTMLElement): View {
   stage.append(root)
 
   let lastLamp = { az: 135, mode: 'rake' as 'rake' | 'ring' }
+  let lastReadout = ''
+  let lastBar = ''
   const view: View = {
     root, tray, dish, lensBtn, burlapBtn, viewer, bezel, frame, canvas, lamp, focus, coach, input, guessBtn, guessbar, sugg, msg, cardWrap,
     portrait: false,
@@ -191,12 +193,18 @@ export function createView(stage: HTMLElement): View {
       const dof = r.dofMm < 1 ? r.dofMm.toFixed(2) : r.dofMm.toFixed(1)
       const fov = view.portrait ? `${r.fovMm[1]} × ${r.fovMm[0]}` : `${r.fovMm[0]} × ${r.fovMm[1]}`
       const lab = roll ? `<b class="tx-roll">${r.label}</b>` : `<b>${r.label}</b>`
-      readout.innerHTML = `<span class="tx-long">${lab} · f/8 (EFF f/${r.nEff}) · DOF ${dof} MM · FOV ${fov} MM · +${r.ev.toFixed(1)} EV · ${r.fps} FPS · TILT ${tilt.toFixed(1)}° · LAMP ${Math.round(lampAz)}°</span><span class="tx-short">${lab} · ƒ/${r.nEff} · DOF ${dof} · ${r.fps} FPS</span>`
+      const html = `<span class="tx-long">${lab} · f/8 (EFF f/${r.nEff}) · DOF ${dof} MM · FOV ${fov} MM · +${r.ev.toFixed(1)} EV · ${r.fps} FPS · TILT ${tilt.toFixed(1)}° · LAMP ${Math.round(lampAz)}°</span><span class="tx-short">${lab} · ƒ/${r.nEff} · DOF ${dof} · ${r.fps} FPS</span>`
+      if (html === lastReadout && !roll) return
+      lastReadout = html
+      readout.innerHTML = html
       const sp = scale.querySelectorAll('span')
       sp.forEach((s) => { s.innerHTML = s.textContent === r.label ? `<b>${r.label}</b>` : (s.textContent ?? '') })
     },
     setScaleBar(r, mmPerPx) {
       const px = r.scaleBarMm / Math.max(1e-6, mmPerPx)
+      const key = `${r.scaleBarMm}|${Math.round(px)}`
+      if (key === lastBar) return
+      lastBar = key
       const i = scalebar.querySelector('i') as HTMLElement
       i.style.width = `${Math.round(px)}px`
       ;(scalebar.querySelector('span') as HTMLElement).textContent = r.scaleBarMm >= 10 ? `${r.scaleBarMm / 10} cm` : `${r.scaleBarMm} mm`
@@ -225,7 +233,12 @@ export function createView(stage: HTMLElement): View {
         chipsEl.append(el)
       })
       const box = chipsEl.parentElement
-      if (box) { box.scrollTop = box.scrollHeight; box.scrollLeft = box.scrollWidth }
+      if (box) {
+        box.scrollTop = box.scrollHeight
+        // phones show the notes as one horizontal row: keep the newest chip in view
+        if (getComputedStyle(chipsEl).flexWrap === 'nowrap') box.scrollLeft = box.scrollWidth
+        else box.scrollLeft = 0
+      }
     },
     setTurret(i) {
       pips.forEach((p, k) => { p.dataset.on = k === i ? '1' : '0'; p.dataset.past = k < i ? '1' : '0' })
@@ -244,6 +257,7 @@ export function createView(stage: HTMLElement): View {
           if (flipLast && i === rows.length - 1) {
             t.dataset.flip = '1'
             t.style.animationDelay = `${k * 120}ms`
+            t.addEventListener('animationend', () => { t.removeAttribute('data-flip'); t.style.animationDelay = '' }, { once: true })
           } else t.removeAttribute('data-flip')
         })
         name.textContent = data ? data.name : ''

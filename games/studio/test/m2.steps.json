@@ -1,0 +1,11 @@
+[
+  {"eval": "window.__game.whenReady()"},
+  {"shot": "shots/studio/m2-overview.png"},
+  {"eval": "window.__game.goto('yard')"},
+  {"eval": "(window.__game.setTime(17.5), window.__game.toy('swing','pull',0.5), window.__game.toy('sprinkler','on'), window.__game.view('yard-wide'), window.__game.step(1500), 1)"},
+  {"wait": 500},
+  {"shot": "shots/studio/m2-yard.png"},
+  {"eval": "(window.__game.setTime(19.0), window.__game.view('yard-rainbow'), window.__game.step(500), JSON.stringify(window.__game.state().sun.elevDeg))"},
+  {"wait": 500},
+  {"shot": "shots/studio/m2-rainbow.png"}
+]
